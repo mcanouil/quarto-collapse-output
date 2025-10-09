@@ -52,7 +52,7 @@ extensions:
 
 ### Using `output-fold` Attribute
 
-To collapse output for a specific code cell, use the `output-fold: true` chunk option:
+To collapse output for a specific code cell, use the `output-fold: true` code cell option:
 
 ````markdown
 ```{{language}}
@@ -62,7 +62,7 @@ To collapse output for a specific code cell, use the `output-fold: true` chunk o
 ```
 ````
 
-You can also customize the summary text with the `output-summary` chunk option:
+You can also customize the summary text with the `output-summary` code cell option:
 
 ````markdown
 ```{{language}}
@@ -176,9 +176,11 @@ The collapse output extension is particularly useful for:
 ## Notes
 
 :::: {.callout-note}
-- The `output-fold` chunk option only works with HTML output formats.
+
+- The `output-fold` code cell option only works with HTML output formats.
 - When using the Lua method (default), the collapse is applied at build time.
 - When using the JavaScript method, the collapse happens in the browser.
 - The default summary text is "Code Output" if `output-summary` is not specified.
-- Both `output-fold` and `output-summary` are chunk options (use `#|` prefix).
+- Both `output-fold` and `output-summary` are code cell options (use `#|` prefix).
+
 :::

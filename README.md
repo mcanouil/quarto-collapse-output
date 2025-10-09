@@ -37,9 +37,9 @@ extensions:
 - **`javascript`**: Delegates the collapse to JavaScript at runtime.
   The JavaScript file will be loaded and handle the collapse dynamically.
 
-### Using `output-fold` Chunk Option
+### Using `output-fold` Code Cell Option
 
-To collapse output for a specific code cell, use the `output-fold: true` chunk option:
+To collapse output for a specific code cell, use the `output-fold: true` code cell option:
 
 ````markdown
 ```{language}
@@ -49,7 +49,7 @@ To collapse output for a specific code cell, use the `output-fold: true` chunk o
 ```
 ````
 
-You can also customise the summary text with the `output-summary` chunk option:
+You can also customise the summary text with the `output-summary` code cell option:
 
 ````markdown
 ```{language}
@@ -60,7 +60,7 @@ You can also customise the summary text with the `output-summary` chunk option:
 ```
 ````
 
-### Chunk Options
+### Code Cell Options
 
 - **`output-fold`**: Set to `true` to enable collapsing for the cell's output.
 - **`output-summary`**: Customise the summary text (default: "Code Output").
