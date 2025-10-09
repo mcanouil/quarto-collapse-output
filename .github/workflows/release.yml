@@ -25,9 +25,9 @@ jobs:
     secrets: inherit
     with:
       version: "${{ github.event.inputs.version }}"
-      formats: "html typst pdf-xelatex pdf-lualatex pdf-pdflatex revealjs beamer docx pptx"
+      formats: "html"
       tinytex: false
       quarto: "release"
       r: false
-      python: false
+      python: true
       julia: false

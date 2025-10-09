@@ -1,57 +1,185 @@
 ---
-title: "{collapse-output}"
+title: "Collapse Output"
 subtitle: "Quarto Extension"
 format:
   html:
     output-file: index
-  typst:
-    output-file: example-typst
-    papersize: a4
-    margin:
-      x: 2.5cm
-      y: 2.5cm
-  pdf-xelatex:
-    output-file: example-xelatex
-    papersize: a4
-    margin:
-      x: 2.5cm
-      y: 2.5cm
-  pdf-lualatex:
-    output-file: example-lualatex
-    pdf-engine: lualatex
-    papersize: a4
-    margin:
-      x: 2.5cm
-      y: 2.5cm
-  pdf-pdflatex:
-    output-file: example-pdflatex
-    pdf-engine: lualatex
-    papersize: a4
-    margin:
-      x: 2.5cm
-      y: 2.5cm
-  revealjs:
-    output-file: example-revealjs
-    shift-heading-level-by: -1
-  beamer:
-    output-file: example-beamer
-    aspectratio: 169
-  docx:
-    output-file: example-docx
-  pptx:
-    output-file: example-pptx
-format-links:
-  - html
-  - typst
-  - format: pdf-xelatex
-    text: "PDF (XeLaTeX)"
-  - format: pdf-lualatex
-    text: "PDF (LuaLaTeX)"
-  - format: pdf-pdflatex
-    text: "PDF (PDFLaTeX)"
-  - revealjs
-  - beamer
-  - docx
-  - pptx
+    toc: true
+engine: jupyter
 embed-resources: true
+# Extension configuration
+filters:
+  - collapse-output
+extensions:
+  collapse-output:
+    method: lua
 ---
+
+## Installation
+
+```bash
+quarto add mcanouil/quarto-collapse-output
+```
+
+This will install the extension under the `_extensions` subdirectory.
+If you're using version control, you will want to check in this directory.
+
+## Usage
+
+Add the filter to your document's YAML header:
+
+```yaml
+filters:
+  - collapse-output
+```
+
+### Configuration Options
+
+You can configure the extension using the `extensions.collapse-output` section:
+
+```yaml
+extensions:
+  collapse-output:
+    method: lua  # or "javascript" (default: "lua")
+```
+
+#### Method Option
+
+- **`lua`** (default): Processes the collapse using Lua at build time.
+  The output is wrapped in HTML `<details>` elements during rendering.
+- **`javascript`**: Delegates the collapse to JavaScript at runtime.
+  The JavaScript file will be loaded and handle the collapse dynamically.
+
+### Using `output-fold` Attribute
+
+To collapse output for a specific code cell, use the `output-fold: true` chunk option:
+
+````markdown
+```{{language}}
+#| output-fold: true
+
+# Your code here
+```
+````
+
+You can also customize the summary text with the `output-summary` chunk option:
+
+````markdown
+```{{language}}
+#| output-fold: true
+#| output-summary: "Click to view results"
+
+# Your code here
+```
+````
+
+## Examples
+
+### Basic Example with Text Output
+
+This example demonstrates collapsing simple text output:
+
+```{python}
+#| label: code
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "Code Output"
+
+group = ["Ctl"] * 10 + ["Trt"] * 10
+ctl = [4.17, 5.58, 5.18, 6.11, 4.50, 4.61, 5.17, 4.53, 5.33, 5.14]
+trt = [4.81, 4.17, 4.41, 3.59, 5.87, 3.83, 6.03, 4.89, 4.32, 4.69]
+weight = ctl + trt
+
+# Calculate means
+mean_ctl = sum(ctl) / len(ctl)
+mean_trt = sum(trt) / len(trt)
+
+# Calculate difference
+diff = mean_trt - mean_ctl
+
+print(f"Mean (Ctl): {mean_ctl:.2f}")
+print(f"Mean (Trt): {mean_trt:.2f}")
+print(f"Difference: {diff:.2f}")
+```
+
+### Example with Table Output
+
+This example demonstrates collapsing table output:
+
+```{python}
+#| label: table
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "Table"
+
+import polars as pl
+
+df = pl.DataFrame({
+  "Group": group,
+  "Weight": weight
+})
+
+print(df)
+```
+
+### Example with Matplotlib Figure
+
+This example demonstrates collapsing a Matplotlib plot:
+
+```{python}
+#| label: figure-1
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "Figure 1"
+
+import matplotlib.pyplot as plt
+
+plt.boxplot([ctl, trt], tick_labels=["Ctl", "Trt"])
+plt
+```
+
+### Example with Plotnine Figure
+
+This example demonstrates collapsing a plotnine/ggplot figure:
+
+```{python}
+#| label: figure-2
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "Figure 2"
+
+from plotnine import ggplot, aes, geom_boxplot, labs
+import polars as pl
+
+df = pl.DataFrame({
+  "Group": group,
+  "Weight": weight
+})
+
+(
+  ggplot(df.to_pandas()) +
+    aes(x="Group", y="Weight") +
+    geom_boxplot() +
+    labs(title="Boxplot of Weight by Group")
+)
+```
+
+
+## Use Cases
+
+The collapse output extension is particularly useful for:
+
+- **Long outputs**: Hide lengthy console output, tables, or plots by default.
+- **Tutorial documents**: Keep code visible while hiding output until needed.
+- **Reports**: Show results on demand without cluttering the main document.
+- **Interactive exploration**: Allow readers to selectively view outputs of interest.
+
+## Notes
+
+:::: {.callout-note}
+- The `output-fold` chunk option only works with HTML output formats.
+- When using the Lua method (default), the collapse is applied at build time.
+- When using the JavaScript method, the collapse happens in the browser.
+- The default summary text is "Code Output" if `output-summary` is not specified.
+- Both `output-fold` and `output-summary` are chunk options (use `#|` prefix).
+:::
