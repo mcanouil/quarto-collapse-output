@@ -164,7 +164,6 @@ df = pl.DataFrame({
 )
 ```
 
-
 ## Use Cases
 
 The collapse output extension is particularly useful for:
