@@ -119,7 +119,7 @@ df = pl.DataFrame({
   "Weight": weight
 })
 
-print(df)
+df
 ```
 
 ### Example with Matplotlib Figure
