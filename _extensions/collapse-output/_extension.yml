@@ -1,0 +1,8 @@
+title: Collapse-output
+author: Mickaël Canouil
+version: 0.0.0
+quarto-required: ">=99.9.0"
+contributes:
+  filters:
+    - collapse-output.lua
+

@@ -1,5 +1,5 @@
 ---
-title: "{{{EXTENSION}}}"
+title: "{collapse-output}"
 subtitle: "Quarto Extension"
 format:
   html:
