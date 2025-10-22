@@ -22,38 +22,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ]]
 
+--- Load utils module
+local utils_path = quarto.utils.resolve_path("utils.lua")
+local utils = require(utils_path)
+
 --- @type string The method to use for collapsing output (lua or javascript)
 local method = "lua"
 
---- Check if a string is empty or nil
---- @param s string|nil The string to check
---- @return boolean true if the string is nil or empty
-local function is_empty(s)
-  return s == nil or s == ''
-end
-
---- Extract metadata value from document meta using nested structure
---- @param meta table The document metadata table
---- @param key string The metadata key to retrieve
---- @return string|nil The metadata value as a string, or nil if not found
-local function get_metadata_value(meta, key)
-  -- Check for the nested structure: extensions.collapse-output.key
-  if meta['extensions'] and meta['extensions']['collapse-output'] and meta['extensions']['collapse-output'][key] then
-    return pandoc.utils.stringify(meta['extensions']['collapse-output'][key])
-  end
-
-  return nil
-end
 
 --- Get configuration from metadata
 --- This function extracts the configuration options from document metadata
 --- @param meta table The document metadata table
 --- @return table The metadata table (unchanged)
 function get_configuration(meta)
-  local meta_method = get_metadata_value(meta, 'method')
+  local meta_method = utils.get_metadata_value(meta, 'collapse-output', 'method')
 
   -- Set method
-  if not is_empty(meta_method) then
+  if not utils.is_empty(meta_method) then
     method = (meta_method --[[@as string]]):lower()
     if method ~= "lua" and method ~= "javascript" then
       quarto.log.warning("Invalid method '" .. method .. "'. Using default 'lua'.")
