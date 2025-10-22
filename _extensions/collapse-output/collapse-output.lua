@@ -23,7 +23,7 @@ SOFTWARE.
 ]]
 
 --- Load utils module
-local utils_path = quarto.utils.resolve_path("utils.lua")
+local utils_path = quarto.utils.resolve_path("_modules/utils.lua")
 local utils = require(utils_path)
 
 --- @type string The method to use for collapsing output (lua or javascript)
