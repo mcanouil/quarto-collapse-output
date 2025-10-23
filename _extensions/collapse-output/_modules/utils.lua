@@ -66,7 +66,7 @@ end
 function utils_module.split(str, sep)
   local fields = {}
   local pattern = string.format("([^%s]+)", sep)
-  str:gsub(pattern, function(c) fields[#fields+1] = c end)
+  str:gsub(pattern, function(c) fields[#fields + 1] = c end)
   return fields
 end
 
@@ -193,7 +193,7 @@ end
 --- @return pandoc.Link|nil A Pandoc Link element or nil if text or uri is empty
 function utils_module.create_link(text, uri)
   if not utils_module.is_empty(uri) and not utils_module.is_empty(text) then
-    return pandoc.Link({pandoc.Str(text --[[@as string]])}, uri --[[@as string]])
+    return pandoc.Link({ pandoc.Str(text --[[@as string]]) }, uri --[[@as string]])
   end
   return nil
 end
@@ -446,6 +446,43 @@ function utils_module.get_options(spec)
   end
 
   return result
+end
+
+-- ============================================================================
+-- LOGGING UTILITIES
+-- ============================================================================
+
+--- Format and log an error message with extension prefix.
+--- Provides standardised error messages with consistent formatting across extensions.
+--- Format: [extension-name] Message with details.
+---
+--- @param extension_name string The name of the extension (e.g., "external", "lua-env")
+--- @param message string The error message to display
+--- @usage utils_module.log_error("external", "Could not open file 'example.md'.")
+function utils_module.log_error(extension_name, message)
+  quarto.log.error("[" .. extension_name .. "] " .. message)
+end
+
+--- Format and log a warning message with extension prefix.
+--- Provides standardised warning messages with consistent formatting across extensions.
+--- Format: [extension-name] Message with details.
+---
+--- @param extension_name string The name of the extension (e.g., "external", "lua-env")
+--- @param message string The warning message to display
+--- @usage utils_module.log_warning("lua-env", "No variable name provided.")
+function utils_module.log_warning(extension_name, message)
+  quarto.log.warning("[" .. extension_name .. "] " .. message)
+end
+
+--- Format and log an output message with extension prefix.
+--- Provides standardised informational messages with consistent formatting across extensions.
+--- Format: [extension-name] Message with details.
+---
+--- @param extension_name string The name of the extension (e.g., "lua-env")
+--- @param message string The informational message to display
+--- @usage utils_module.log_output("lua-env", "Exported metadata to: output.json")
+function utils_module.log_output(extension_name, message)
+  quarto.log.output("[" .. extension_name .. "] " .. message)
 end
 
 -- ============================================================================

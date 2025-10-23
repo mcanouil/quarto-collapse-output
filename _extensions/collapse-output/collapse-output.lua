@@ -22,6 +22,9 @@
 # SOFTWARE.
 ]]
 
+--- Extension name constant
+local EXTENSION_NAME = "collapse-output"
+
 --- Load utils module
 local utils_path = quarto.utils.resolve_path("_modules/utils.lua")
 local utils = require(utils_path)
@@ -41,7 +44,7 @@ local function get_configuration(meta)
   if not utils.is_empty(meta_method) then
     method = (meta_method --[[@as string]]):lower()
     if method ~= "lua" and method ~= "javascript" then
-      quarto.log.warning("Invalid method '" .. method .. "'. Using default 'lua'.")
+      utils.log_warning(EXTENSION_NAME, "Invalid method '" .. method .. "'. Using default 'lua'.")
       method = "lua"
     end
   else
