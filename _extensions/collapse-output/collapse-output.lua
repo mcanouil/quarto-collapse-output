@@ -2,23 +2,23 @@
 # MIT License
 #
 # Copyright (c) 2025 Mickaël Canouil
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ]]
 
@@ -34,7 +34,7 @@ local method = "lua"
 --- This function extracts the configuration options from document metadata
 --- @param meta table The document metadata table
 --- @return table The metadata table (unchanged)
-function get_configuration(meta)
+local function get_configuration(meta)
   local meta_method = utils.get_metadata_value(meta, 'collapse-output', 'method')
 
   -- Set method
@@ -51,27 +51,13 @@ function get_configuration(meta)
   return meta
 end
 
---- Ensure HTML dependencies are included (for javascript method)
---- @return nil
-local function ensure_html_deps()
-  if method == "javascript" then
-    quarto.doc.add_html_dependency({
-      name = 'collapse-output',
-      version = '1.0.0',
-      scripts = {
-        { path = "collapse-output.min.js", afterBody = true }
-      }
-    })
-  end
-end
-
 --- Process Div elements to add collapse functionality.
 --- Wraps cell output in collapsible <details> elements when output-fold="true".
 --- Supports both Lua-based (server-side) and JavaScript-based (client-side) methods.
 ---
 --- @param div pandoc.Div The Div element to process
 --- @return pandoc.Div|nil The modified Div or nil if no changes
-function process_div(div)
+local function process_div(div)
   if not quarto.doc.is_format("html") then
     return nil
   end
@@ -111,7 +97,16 @@ function process_div(div)
     div.content = new_content
     return div
   elseif method == "javascript" then
-    ensure_html_deps()
+    -- Use utils module to ensure HTML dependencies
+    if method == "javascript" then
+      utils.ensure_html_dependency({
+        name = 'collapse-output',
+        version = '1.0.0',
+        scripts = {
+          { path = "collapse-output.min.js", afterBody = true }
+        }
+      })
+    end
     return div
   else
     return nil
