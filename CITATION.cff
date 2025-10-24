@@ -9,5 +9,5 @@ authors:
 repository-code: "https://github.com/mcanouil/quarto-collapse-output"
 url: "http://m.canouil.dev/quarto-collapse-output/"
 license: "MIT"
-date-released: "2025-10-09"
-version: 1.0.0
+date-released: "2025-10-24"
+version: 1.1.0
