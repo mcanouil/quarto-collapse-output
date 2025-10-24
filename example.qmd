@@ -22,6 +22,7 @@ quarto add mcanouil/quarto-collapse-output
 ```
 
 This will install the extension under the `_extensions` subdirectory.
+
 If you're using version control, you will want to check in this directory.
 
 ## Usage
@@ -45,12 +46,10 @@ extensions:
 
 #### Method Option
 
-- **`lua`** (default): Processes the collapse using Lua at build time.
-  The output is wrapped in HTML `<details>` elements during rendering.
-- **`javascript`**: Delegates the collapse to JavaScript at runtime.
-  The JavaScript file will be loaded and handle the collapse dynamically.
+- **`lua`** (default): Processes the collapse using Lua at build time. The output is wrapped in HTML `<details>` elements during rendering.
+- **`javascript`**: Delegates the collapse to JavaScript at runtime. The JavaScript file will be loaded and handles the collapse dynamically.
 
-### Using `output-fold` Attribute
+### Using `output-fold` Code Cell Option
 
 To collapse output for a specific code cell, use the `output-fold: true` code cell option:
 
@@ -62,7 +61,7 @@ To collapse output for a specific code cell, use the `output-fold: true` code ce
 ```
 ````
 
-You can also customize the summary text with the `output-summary` code cell option:
+You can also customise the summary text with the `output-summary` code cell option:
 
 ````markdown
 ```{{language}}
@@ -169,7 +168,7 @@ df = pl.DataFrame({
 The collapse output extension is particularly useful for:
 
 - **Long outputs**: Hide lengthy console output, tables, or plots by default.
-- **Tutorial documents**: Keep code visible while hiding output until needed.
+- **Tutorial documents**: Keep code visible whilst hiding output until needed.
 - **Reports**: Show results on demand without cluttering the main document.
 - **Interactive exploration**: Allow readers to selectively view outputs of interest.
 
