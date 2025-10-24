@@ -23,13 +23,13 @@
 ]]
 
 --- Extension name constant
-local EXTENSION_NAME = "collapse-output"
+local EXTENSION_NAME = 'collapse-output'
 
 --- Load utils module
-local utils = require(quarto.utils.resolve_path("_modules/utils.lua"):gsub("%.lua$", ""))
+local utils = require(quarto.utils.resolve_path('_modules/utils.lua'):gsub('%.lua$', ''))
 
 --- @type string The method to use for collapsing output (lua or javascript)
-local method = "lua"
+local method = 'lua'
 
 
 --- Get configuration from metadata
@@ -42,12 +42,12 @@ local function get_configuration(meta)
   -- Set method
   if not utils.is_empty(meta_method) then
     method = (meta_method --[[@as string]]):lower()
-    if method ~= "lua" and method ~= "javascript" then
-      utils.log_warning(EXTENSION_NAME, "Invalid method '" .. method .. "'. Using default 'lua'.")
-      method = "lua"
+    if method ~= 'lua' and method ~= 'javascript' then
+      utils.log_warning(EXTENSION_NAME, 'Invalid method \'' .. method .. '\'. Using default \'lua\'.')
+      method = 'lua'
     end
   else
-    method = "lua" -- default method
+    method = 'lua' -- default method
   end
 
   return meta
@@ -60,34 +60,34 @@ end
 --- @param div pandoc.Div The Div element to process
 --- @return pandoc.Div|nil The modified Div or nil if no changes
 local function process_div(div)
-  if not quarto.doc.is_format("html") then
+  if not quarto.doc.is_format('html') then
     return nil
   end
 
-  if div.attributes["output-fold"] ~= "true" then
+  if div.attributes['output-fold'] ~= 'true' then
     return nil
   end
 
   --- @type string Summary text for the collapsible section
-  local summary_text = div.attributes["output-summary"] or "Code Output"
+  local summary_text = div.attributes['output-summary'] or 'Code Output'
 
-  if method == "lua" then
+  if method == 'lua' then
     -- Process with Lua (server-side rendering)
     --- @type table<integer, table> New content with wrapped output blocks
     local new_content = {}
 
     for _, block in ipairs(div.content) do
-      if block.t == "Div" then
+      if block.t == 'Div' then
         --- @type boolean Flag indicating if block is cell output
         local has_cell_output = false
-        has_cell_output = block.classes:find("cell-output") or
-          block.classes:find("cell-output-stdout") or
-          block.classes:find("cell-output-display")
+        has_cell_output = block.classes:find('cell-output') or
+          block.classes:find('cell-output-stdout') or
+          block.classes:find('cell-output-display')
 
         if has_cell_output then
-          table.insert(new_content, pandoc.RawBlock("html", "<details><summary>" .. summary_text .. "</summary>"))
+          table.insert(new_content, pandoc.RawBlock('html', '<details><summary>' .. summary_text .. '</summary>'))
           table.insert(new_content, block)
-          table.insert(new_content, pandoc.RawBlock("html", "</details>"))
+          table.insert(new_content, pandoc.RawBlock('html', '</details>'))
         else
           table.insert(new_content, block)
         end
@@ -98,14 +98,14 @@ local function process_div(div)
 
     div.content = new_content
     return div
-  elseif method == "javascript" then
+  elseif method == 'javascript' then
     -- Use utils module to ensure HTML dependencies
-    if method == "javascript" then
+    if method == 'javascript' then
       utils.ensure_html_dependency({
         name = 'collapse-output',
         version = '1.0.0',
         scripts = {
-          { path = "collapse-output.min.js", afterBody = true }
+          { path = 'collapse-output.min.js', afterBody = true }
         }
       })
     end
