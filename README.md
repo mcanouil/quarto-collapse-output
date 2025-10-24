@@ -77,7 +77,7 @@ The collapse output extension is particularly useful for:
 
 Here is the source code for a minimal example: [example.qmd](example.qmd).
 
-Outputs of `example.qmd`:
+Output of `example.qmd`:
 
 - [HTML](https://m.canouil.dev/quarto-collapse-output/)
 
