@@ -1,6 +1,10 @@
 ---
 title: "Collapse Output"
 subtitle: "Quarto Extension"
+author:
+  - name: "Mickaël CANOUIL, _Ph.D._"
+    orcid: "0000-0002-3396-4549"
+    url: "https://mickael.canouil.fr"
 format:
   html:
     output-file: index
