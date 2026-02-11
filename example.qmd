@@ -22,7 +22,7 @@ extensions:
 ## Installation
 
 ```bash
-quarto add mcanouil/quarto-collapse-output
+quarto add mcanouil/quarto-collapse-output@1.2.1
 ```
 
 This will install the extension under the `_extensions` subdirectory.
