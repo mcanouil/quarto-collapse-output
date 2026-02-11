@@ -1,7 +1,7 @@
 [project]
 name = "quarto-collapse-output"
 version = "0.1.0"
-requires-python = ">=3.13"
+requires-python = "==3.13.*"
 dependencies = [
     "jupyter>=1.1.1",
     "matplotlib>=3.10.7",
