@@ -1,0 +1,22 @@
+# Schema for the collapse-output extension
+# Provides configuration validation and IDE support for options
+# and element attributes.
+
+options:
+  method:
+    type: string
+    default: "lua"
+    enum: [lua, javascript]
+    enum-case-insensitive: true
+    description: "Collapsing method. 'lua' renders server-side; 'javascript' renders client-side."
+
+element-attributes:
+  _any:
+    output-fold:
+      type: boolean
+      default: false
+      description: "Wrap cell output in a collapsible details element."
+    output-summary:
+      type: string
+      default: "Code Output"
+      description: "Summary text shown on the collapsed output toggle."
