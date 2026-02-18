@@ -2,6 +2,8 @@
 # Provides configuration validation and IDE support for options
 # and element attributes.
 
+$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v1/extension-schema.json
+
 options:
   method:
     type: string
