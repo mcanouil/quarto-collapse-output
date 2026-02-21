@@ -12,6 +12,14 @@ on:
           - "patch"
           - "minor"
           - "major"
+      quarto:
+        type: choice
+        description: "Quarto version"
+        required: false
+        default: "release"
+        options:
+          - "release"
+          - "pre-release"
 
 permissions:
   contents: write
@@ -28,7 +36,7 @@ jobs:
       version: "${{ github.event.inputs.version }}"
       formats: "html"
       tinytex: false
-      quarto: "release"
+      quarto: "${{ github.event.inputs.quarto }}"
       r: false
       python: true
       julia: false
