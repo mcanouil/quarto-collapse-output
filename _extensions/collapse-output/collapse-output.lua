@@ -6,8 +6,9 @@
 --- Extension name constant
 local EXTENSION_NAME = 'collapse-output'
 
---- Load utils module
+--- Load utils and schema modules
 local utils = require(quarto.utils.resolve_path('_modules/utils.lua'):gsub('%.lua$', ''))
+local schema = require(quarto.utils.resolve_path('_modules/schema.lua'):gsub('%.lua$', ''))
 
 --- @type string The method to use for collapsing output (lua or javascript)
 local method = 'lua'
@@ -18,18 +19,8 @@ local method = 'lua'
 --- @param meta table The document metadata table
 --- @return table The metadata table (unchanged)
 local function get_configuration(meta)
-  local meta_method = utils.get_metadata_value(meta, 'collapse-output', 'method')
-
-  -- Set method
-  if not utils.is_empty(meta_method) then
-    method = (meta_method --[[@as string]]):lower()
-    if method ~= 'lua' and method ~= 'javascript' then
-      utils.log_warning(EXTENSION_NAME, 'Invalid method \'' .. method .. '\'. Using default \'lua\'.')
-      method = 'lua'
-    end
-  else
-    method = 'lua' -- default method
-  end
+  local validated = schema.validate_options(meta, EXTENSION_NAME, quarto.utils.resolve_path('_schema.yml'))
+  method = validated.method or 'lua'
 
   return meta
 end
