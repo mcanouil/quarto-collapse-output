@@ -1,6 +1,6 @@
 # Schema for the collapse-output extension
 # Provides configuration validation and IDE support for options
-# and element attributes.
+# and attributes.
 
 $schema: https://m.canouil.dev/quarto-wizard/assets/schema/v1/extension-schema.json
 
@@ -12,7 +12,7 @@ options:
     enum-case-insensitive: true
     description: "Collapsing method. 'lua' renders server-side; 'javascript' renders client-side."
 
-element-attributes:
+attributes:
   _any:
     output-fold:
       type: boolean
