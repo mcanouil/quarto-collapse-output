@@ -6,8 +6,11 @@
 --- Extension name constant
 local EXTENSION_NAME = 'collapse-output'
 
---- Load utils module
-local utils = require(quarto.utils.resolve_path('_modules/utils.lua'):gsub('%.lua$', ''))
+--- Load modules
+local str = require(quarto.utils.resolve_path('_modules/string.lua'):gsub('%.lua$', ''))
+local log = require(quarto.utils.resolve_path('_modules/logging.lua'):gsub('%.lua$', ''))
+local meta_mod = require(quarto.utils.resolve_path('_modules/metadata.lua'):gsub('%.lua$', ''))
+local html_mod = require(quarto.utils.resolve_path('_modules/html.lua'):gsub('%.lua$', ''))
 
 --- @type string The method to use for collapsing output (lua or javascript)
 local method = 'lua'
@@ -18,13 +21,13 @@ local method = 'lua'
 --- @param meta table The document metadata table
 --- @return table The metadata table (unchanged)
 local function get_configuration(meta)
-  local meta_method = utils.get_metadata_value(meta, 'collapse-output', 'method')
+  local meta_method = meta_mod.get_metadata_value(meta, 'collapse-output', 'method')
 
   -- Set method
-  if not utils.is_empty(meta_method) then
+  if not str.is_empty(meta_method) then
     method = (meta_method --[[@as string]]):lower()
     if method ~= 'lua' and method ~= 'javascript' then
-      utils.log_warning(EXTENSION_NAME, 'Invalid method \'' .. method .. '\'. Using default \'lua\'.')
+      log.log_warning(EXTENSION_NAME, 'Invalid method \'' .. method .. '\'. Using default \'lua\'.')
       method = 'lua'
     end
   else
@@ -82,7 +85,7 @@ local function process_div(div)
   elseif method == 'javascript' then
     -- Use utils module to ensure HTML dependencies
     if method == 'javascript' then
-      utils.ensure_html_dependency({
+      html_mod.ensure_html_dependency({
         name = 'collapse-output',
         version = '1.0.0',
         scripts = {
