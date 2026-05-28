@@ -30,6 +30,9 @@ const OUTPUT_TYPE_CLASSES = {
   output: 'cell-output',
 };
 
+// Ordered output-type identifiers (first match wins during detection).
+const OUTPUT_TYPE_ORDER = ['stdout', 'stderr', 'display', 'output'];
+
 // Default summary text per output type.
 const DEFAULT_TYPE_SUMMARIES = {
   stdout: 'Standard Output',
@@ -71,7 +74,7 @@ function parseInteger(value) {
  * @returns {string | null}
  */
 function detectOutputType(element) {
-  for (const key of ['stdout', 'stderr', 'display', 'output']) {
+  for (const key of OUTPUT_TYPE_ORDER) {
     if (element.classList.contains(OUTPUT_TYPE_CLASSES[key])) return key;
   }
   return null;
@@ -110,19 +113,17 @@ function renderSummary(outputType, explicitSummary, lineCount, options) {
  * Wrap a single output element in a <details> block.
  * @param {Element} cell
  * @param {Element} output
- * @param {{ template: string, perType: Record<string, string>, defaultOpen: boolean, autoCollapse: number | null }} options
+ * @param {{ template: string, perType: Record<string, string>, open: boolean, autoCollapse: number | null }} options
  */
 function wrapOutput(cell, output, options) {
   const outputType = detectOutputType(output);
   if (!outputType) return;
 
   const lineCount = countLines(output);
-  const cellOpen = parseBoolean(cell.dataset.outputOpen);
-  const defaultOpen = cellOpen === null ? options.defaultOpen : cellOpen;
   const forceCollapsed = options.autoCollapse !== null && lineCount >= options.autoCollapse;
 
   const details = document.createElement('details');
-  if (defaultOpen && !forceCollapsed) details.open = true;
+  if (options.open && !forceCollapsed) details.open = true;
 
   const summary = document.createElement('summary');
   summary.textContent = renderSummary(
@@ -155,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const options = {
       template: cell.dataset.outputSummaryTemplate || DEFAULT_SUMMARY_TEMPLATE,
       perType,
-      defaultOpen: parseBoolean(cell.dataset.outputOpen) === true,
+      open: parseBoolean(cell.dataset.outputOpen) === true,
       autoCollapse: parseInteger(cell.dataset.outputAutoCollapse),
     };
 

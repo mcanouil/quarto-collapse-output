@@ -13,13 +13,15 @@ local meta_mod = require(quarto.utils.resolve_path('_modules/metadata.lua'):gsub
 local html_mod = require(quarto.utils.resolve_path('_modules/html.lua'):gsub('%.lua$', ''))
 
 --- Supported output-type identifiers and the Pandoc Div classes they map to.
---- Order is significant: the first matching class wins per Div.
 local OUTPUT_TYPE_CLASSES = {
   stdout = 'cell-output-stdout',
   stderr = 'cell-output-stderr',
   display = 'cell-output-display',
   output = 'cell-output',
 }
+
+--- Ordered output-type identifiers (first match wins during detection).
+local OUTPUT_TYPE_ORDER = { 'stdout', 'stderr', 'display', 'output' }
 
 --- Default summary text per output type, used when no template/summary is set.
 local DEFAULT_TYPE_SUMMARIES = {
@@ -212,7 +214,7 @@ end
 --- @param block pandoc.Div The candidate block.
 --- @return string|nil The output-type key, or nil if not an output block.
 local function detect_output_type(block)
-  for _, key in ipairs({ 'stdout', 'stderr', 'display', 'output' }) do
+  for _, key in ipairs(OUTPUT_TYPE_ORDER) do
     if block.classes:find(OUTPUT_TYPE_CLASSES[key]) then
       return key
     end
@@ -297,20 +299,17 @@ end
 --- @param line_count integer Line count of the candidate output block.
 --- @return boolean True when the details element should be rendered open.
 local function should_open(div, line_count)
-  local explicit = div.attributes['output-open']
-  local cell_open
-  if explicit ~= nil and explicit ~= '' then
-    cell_open = parse_boolean(explicit)
-  end
-
-  local open_state = cell_open
-  if open_state == nil then open_state = config.default_open end
-
   if config.auto_collapse_size and line_count >= config.auto_collapse_size then
     return false
   end
 
-  return open_state
+  local explicit = div.attributes['output-open']
+  if explicit ~= nil and explicit ~= '' then
+    local parsed = parse_boolean(explicit)
+    if parsed ~= nil then return parsed end
+  end
+
+  return config.default_open
 end
 
 --- Wrap a cell-output Div in `<details>` elements (server-side rendering).
