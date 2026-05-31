@@ -3,108 +3,412 @@
 --- @copyright 2026 Mickaël Canouil
 --- @author Mickaël Canouil
 
---- Extension name constant
+--- Extension name constant.
 local EXTENSION_NAME = 'collapse-output'
 
---- Load modules
+--- Load modules.
 local str = require(quarto.utils.resolve_path('_modules/string.lua'):gsub('%.lua$', ''))
 local log = require(quarto.utils.resolve_path('_modules/logging.lua'):gsub('%.lua$', ''))
 local meta_mod = require(quarto.utils.resolve_path('_modules/metadata.lua'):gsub('%.lua$', ''))
 local html_mod = require(quarto.utils.resolve_path('_modules/html.lua'):gsub('%.lua$', ''))
 
---- @type string The method to use for collapsing output (lua or javascript)
-local method = 'lua'
+--- Supported output-type identifiers and the Pandoc Div classes they map to.
+local OUTPUT_TYPE_CLASSES = {
+  stdout = 'cell-output-stdout',
+  stderr = 'cell-output-stderr',
+  display = 'cell-output-display',
+  output = 'cell-output',
+}
 
+--- Ordered output-type identifiers (first match wins during detection).
+local OUTPUT_TYPE_ORDER = { 'stdout', 'stderr', 'display', 'output' }
 
---- Get configuration from metadata
---- This function extracts the configuration options from document metadata
---- @param meta table The document metadata table
---- @return table The metadata table (unchanged)
-local function get_configuration(meta)
-  local meta_method = meta_mod.get_metadata_value(meta, 'collapse-output', 'method')
+--- Default summary text per output type, used when no template/summary is set.
+local DEFAULT_TYPE_SUMMARIES = {
+  stdout = 'Standard Output',
+  stderr = 'Standard Error',
+  display = 'Display Output',
+  output = 'Code Output',
+}
 
-  -- Set method
-  if not str.is_empty(meta_method) then
-    method = (meta_method --[[@as string]]):lower()
-    if method ~= 'lua' and method ~= 'javascript' then
-      log.log_warning(EXTENSION_NAME, 'Invalid method \'' .. method .. '\'. Using default \'lua\'.')
-      method = 'lua'
+--- Default summary template placeholders.
+--- `{type}` resolves to the human label of the matched output type.
+--- `{lines}` resolves to the line count of the wrapped block.
+local DEFAULT_SUMMARY_TEMPLATE = '{type}'
+
+--- Filter configuration, refreshed at every Meta pass to avoid state bleed
+--- across batch renders.
+--- @class collapse_config
+--- @field method string Rendering method ('lua' or 'javascript').
+--- @field collapse_all_outputs boolean Wrap every cell output, regardless of per-cell flag.
+--- @field default_open boolean Initial state of the details element.
+--- @field auto_collapse_size integer|nil Line threshold above which outputs auto-fold (Lua method).
+--- @field output_types table<string, boolean> Set of enabled output-type keys.
+--- @field summary_template string Template string for the summary text.
+--- @field per_type_summaries table<string, string> Override summaries keyed by output type.
+local config = {}
+
+--- Reset the filter configuration to documented defaults.
+--- @return nil
+local function reset_config()
+  config = {
+    method = 'lua',
+    collapse_all_outputs = false,
+    default_open = false,
+    auto_collapse_size = nil,
+    output_types = {
+      stdout = true,
+      stderr = true,
+      display = true,
+      output = true,
+    },
+    summary_template = DEFAULT_SUMMARY_TEMPLATE,
+    per_type_summaries = {},
+  }
+end
+
+reset_config()
+
+--- Parse a metadata value into a boolean using documented conventions.
+--- @param value any Raw metadata value (Pandoc Inlines, boolean, string, nil).
+--- @return boolean|nil True/false when parseable, nil when value is empty.
+local function parse_boolean(value)
+  if value == nil then return nil end
+  if type(value) == 'boolean' then return value end
+  local text = str.stringify(value)
+  if str.is_empty(text) then return nil end
+  text = text:lower()
+  if text == 'true' or text == 'yes' or text == '1' then return true end
+  if text == 'false' or text == 'no' or text == '0' then return false end
+  return nil
+end
+
+--- Parse a metadata value into a positive integer.
+--- Emits a warning and returns nil when the value is not a positive integer.
+--- @param value any Raw metadata value.
+--- @param key string Configuration key name (used in the warning).
+--- @return integer|nil Parsed integer, or nil when invalid/empty.
+local function parse_positive_integer(value, key)
+  if value == nil then return nil end
+  local text = str.stringify(value)
+  if str.is_empty(text) then return nil end
+  local number = tonumber(text)
+  if not number or number < 0 or number ~= math.floor(number) then
+    log.log_warning(
+      EXTENSION_NAME,
+      'Invalid \'' .. key .. '\' value \'' .. text .. '\'. Expected a non-negative integer.'
+    )
+    return nil
+  end
+  return math.floor(number)
+end
+
+--- Parse the `output-types` metadata into a set of enabled keys.
+--- Accepts a comma-separated string or a YAML list of strings.
+--- @param value any Raw metadata value.
+--- @return table<string, boolean>|nil Set of enabled keys, or nil when unset.
+local function parse_output_types(value)
+  if value == nil then return nil end
+
+  --- @type table<integer, string>
+  local items = {}
+  if type(value) == 'table' and value.t == 'MetaList' then
+    for _, item in ipairs(value) do
+      local entry = str.stringify(item)
+      if not str.is_empty(entry) then
+        table.insert(items, entry)
+      end
     end
   else
-    method = 'lua' -- default method
+    local text = str.stringify(value)
+    if str.is_empty(text) then return nil end
+    for item in text:gmatch('[^,%s]+') do
+      table.insert(items, item)
+    end
+  end
+
+  --- @type table<string, boolean>
+  local set = {}
+  for _, item in ipairs(items) do
+    local key = item:lower()
+    if OUTPUT_TYPE_CLASSES[key] then
+      set[key] = true
+    else
+      log.log_warning(
+        EXTENSION_NAME,
+        'Unknown output-type \'' .. item .. '\'. Known types: stdout, stderr, display, output.'
+      )
+    end
+  end
+
+  if next(set) == nil then return nil end
+  return set
+end
+
+--- Parse the `summaries` mapping into per-type overrides.
+--- Accepts a metadata table keyed by output-type name.
+--- @param value any Raw metadata value.
+--- @return table<string, string> Per-type summary overrides (possibly empty).
+local function parse_per_type_summaries(value)
+  --- @type table<string, string>
+  local result = {}
+  if value == nil or type(value) ~= 'table' then return result end
+  for key, summary in pairs(value) do
+    if type(key) == 'string' and OUTPUT_TYPE_CLASSES[key:lower()] then
+      result[key:lower()] = str.stringify(summary)
+    end
+  end
+  return result
+end
+
+--- Read filter configuration from document metadata.
+--- Resets per-document state, then populates `config` from `extensions.collapse-output`.
+--- @param meta table The document metadata table.
+--- @return table The metadata table (unchanged).
+local function get_configuration(meta)
+  reset_config()
+
+  local meta_method = meta_mod.get_metadata_value(meta, EXTENSION_NAME, 'method')
+  if not str.is_empty(meta_method) then
+    --- @cast meta_method string
+    local method = meta_method:lower()
+    if method ~= 'lua' and method ~= 'javascript' then
+      log.log_warning(
+        EXTENSION_NAME,
+        'Invalid method \'' .. method .. '\'. Using default \'lua\'.'
+      )
+      method = 'lua'
+    end
+    config.method = method
+  end
+
+  local raw_config = meta_mod.get_extension_config(meta, EXTENSION_NAME)
+  if type(raw_config) == 'table' then
+    local collapse_all = parse_boolean(raw_config['collapse-all-outputs'])
+    if collapse_all ~= nil then config.collapse_all_outputs = collapse_all end
+
+    local default_open = parse_boolean(raw_config['default-open'])
+    if default_open ~= nil then config.default_open = default_open end
+
+    local auto_size = parse_positive_integer(raw_config['auto-collapse-size'], 'auto-collapse-size')
+    if auto_size ~= nil then config.auto_collapse_size = auto_size end
+
+    local output_types = parse_output_types(raw_config['output-types'])
+    if output_types ~= nil then config.output_types = output_types end
+
+    local template = raw_config['summary-template']
+    if template ~= nil then
+      local text = str.stringify(template)
+      if not str.is_empty(text) then
+        config.summary_template = text
+      end
+    end
+
+    config.per_type_summaries = parse_per_type_summaries(raw_config['summaries'])
   end
 
   return meta
 end
 
---- Process Div elements to add collapse functionality.
---- Wraps cell output in collapsible <details> elements when output-fold="true".
---- Supports both Lua-based (server-side) and JavaScript-based (client-side) methods.
----
---- @param div pandoc.Div The Div element to process
---- @return pandoc.Div|nil The modified Div or nil if no changes
+--- Resolve the output-type key for a Div by inspecting its classes.
+--- @param block pandoc.Div The candidate block.
+--- @return string|nil The output-type key, or nil if not an output block.
+local function detect_output_type(block)
+  for _, key in ipairs(OUTPUT_TYPE_ORDER) do
+    if block.classes:find(OUTPUT_TYPE_CLASSES[key]) then
+      return key
+    end
+  end
+  return nil
+end
+
+--- Count the number of textual lines for a block.
+--- CodeBlock and RawBlock preserve newlines in their `.text` field; other
+--- block kinds fall back to `pandoc.utils.stringify` so each child paragraph
+--- is treated as one line.
+--- @param block pandoc.Block The block to measure.
+--- @return integer Number of lines (minimum 1 for any non-empty content).
+local function count_lines(block)
+  --- @type string
+  local text = ''
+  if block.t == 'CodeBlock' or block.t == 'RawBlock' then
+    text = block.text or ''
+  elseif block.t == 'Div' then
+    --- @type table<integer, string>
+    local parts = {}
+    for _, child in ipairs(block.content) do
+      if child.t == 'CodeBlock' or child.t == 'RawBlock' then
+        table.insert(parts, child.text or '')
+      else
+        table.insert(parts, pandoc.utils.stringify(child))
+      end
+    end
+    text = table.concat(parts, '\n')
+  else
+    text = pandoc.utils.stringify(block)
+  end
+  if str.is_empty(text) then return 0 end
+  --- @type integer
+  local lines = 1
+  for _ in text:gmatch('\n') do
+    lines = lines + 1
+  end
+  return lines
+end
+
+--- Render the summary text using the configured template.
+--- Substitutes `{type}` and `{lines}` placeholders.
+--- @param output_type string The detected output-type key.
+--- @param explicit string|nil The per-cell `output-summary` attribute, when set.
+--- @param line_count integer The measured line count for the output.
+--- @return string The rendered, HTML-escaped summary text.
+local function render_summary(output_type, explicit, line_count)
+  if explicit and not str.is_empty(explicit) then
+    return str.escape_html(explicit)
+  end
+
+  local per_type = config.per_type_summaries[output_type]
+  if per_type and not str.is_empty(per_type) then
+    return str.escape_html(per_type)
+  end
+
+  local label = DEFAULT_TYPE_SUMMARIES[output_type] or DEFAULT_TYPE_SUMMARIES.output
+  local rendered = config.summary_template
+    :gsub('{type}', label)
+    :gsub('{lines}', tostring(line_count))
+  return str.escape_html(rendered)
+end
+
+--- Decide whether a per-cell directive (or the global toggle) requests folding.
+--- Per-cell `output-fold` always wins over `collapse-all-outputs`.
+--- @param div pandoc.Div The cell-level Div carrying the directive.
+--- @return boolean True when the cell's outputs should be wrapped.
+local function should_fold_cell(div)
+  local explicit = div.attributes['output-fold']
+  if explicit ~= nil and explicit ~= '' then
+    local parsed = parse_boolean(explicit)
+    if parsed ~= nil then return parsed end
+  end
+  return config.collapse_all_outputs
+end
+
+--- Decide whether a single output block should start expanded.
+--- Per-cell `output-open` overrides the document `default-open`.
+--- `auto-collapse-size` forces collapsed state for outputs above the threshold.
+--- @param div pandoc.Div The cell-level Div carrying the directive.
+--- @param line_count integer Line count of the candidate output block.
+--- @return boolean True when the details element should be rendered open.
+local function should_open(div, line_count)
+  if config.auto_collapse_size and line_count >= config.auto_collapse_size then
+    return false
+  end
+
+  local explicit = div.attributes['output-open']
+  if explicit ~= nil and explicit ~= '' then
+    local parsed = parse_boolean(explicit)
+    if parsed ~= nil then return parsed end
+  end
+
+  return config.default_open
+end
+
+--- Wrap a cell-output Div in `<details>` elements (server-side rendering).
+--- @param div pandoc.Div The parent cell Div whose content is being rewritten.
+--- @return pandoc.Div The same Div with wrapped content.
+local function wrap_with_details(div)
+  --- @type string|nil
+  local explicit_summary = div.attributes['output-summary']
+
+  --- @type table
+  local new_content = {}
+
+  for _, block in ipairs(div.content) do
+    local wrapped = false
+    if block.t == 'Div' then
+      local output_type = detect_output_type(block)
+      if output_type and config.output_types[output_type] then
+        local lines = count_lines(block)
+        local summary = render_summary(output_type, explicit_summary, lines)
+        local open_attr = should_open(div, lines) and ' open' or ''
+        table.insert(
+          new_content,
+          pandoc.RawBlock(
+            'html',
+            '<details' .. open_attr .. '><summary>' .. summary .. '</summary>'
+          )
+        )
+        table.insert(new_content, block)
+        table.insert(new_content, pandoc.RawBlock('html', '</details>'))
+        wrapped = true
+      end
+    end
+    if not wrapped then
+      table.insert(new_content, block)
+    end
+  end
+
+  div.content = new_content
+  return div
+end
+
+--- Inject runtime data attributes consumed by the JavaScript renderer.
+--- @param div pandoc.Div The cell-level Div being annotated.
+--- @return pandoc.Div The same Div with additional attributes.
+local function annotate_for_javascript(div)
+  div.attributes['output-fold'] = 'true'
+  if config.default_open then
+    div.attributes['output-open'] = div.attributes['output-open'] or 'true'
+  end
+  if config.auto_collapse_size then
+    div.attributes['output-auto-collapse'] = tostring(config.auto_collapse_size)
+  end
+  local enabled_types = {}
+  for key, enabled in pairs(config.output_types) do
+    if enabled then table.insert(enabled_types, key) end
+  end
+  table.sort(enabled_types)
+  div.attributes['output-types'] = table.concat(enabled_types, ',')
+  if config.summary_template ~= DEFAULT_SUMMARY_TEMPLATE then
+    div.attributes['output-summary-template'] = config.summary_template
+  end
+  for key, summary in pairs(config.per_type_summaries) do
+    div.attributes['output-summary-' .. key] = summary
+  end
+  return div
+end
+
+--- Process every Quarto cell Div: decide whether to fold and how to render.
+--- @param div pandoc.Div The Div element to process.
+--- @return pandoc.Div|nil The modified Div, or nil when no changes are needed.
 local function process_div(div)
   if not quarto.doc.is_format('html') then
     return nil
   end
 
-  if div.attributes['output-fold'] ~= 'true' then
+  if not should_fold_cell(div) then
     return nil
   end
 
-  --- @type string Summary text for the collapsible section
-  local summary_text = div.attributes['output-summary'] or 'Code Output'
-
-  if method == 'lua' then
-    -- Process with Lua (server-side rendering)
-    --- @type table<integer, table> New content with wrapped output blocks
-    local new_content = {}
-
-    for _, block in ipairs(div.content) do
-      if block.t == 'Div' then
-        --- @type boolean Flag indicating if block is cell output
-        local has_cell_output = false
-        has_cell_output = block.classes:find('cell-output') or
-          block.classes:find('cell-output-stdout') or
-          block.classes:find('cell-output-display')
-
-        if has_cell_output then
-          table.insert(new_content, pandoc.RawBlock('html', '<details><summary>' .. summary_text .. '</summary>'))
-          table.insert(new_content, block)
-          table.insert(new_content, pandoc.RawBlock('html', '</details>'))
-        else
-          table.insert(new_content, block)
-        end
-      else
-        table.insert(new_content, block)
-      end
-    end
-
-    div.content = new_content
-    return div
-  elseif method == 'javascript' then
-    -- Use utils module to ensure HTML dependencies
-    if method == 'javascript' then
-      html_mod.ensure_html_dependency({
-        name = 'collapse-output',
-        version = '1.0.0',
-        scripts = {
-          { path = 'collapse-output.min.js', afterBody = true }
-        }
-      })
-    end
-    return div
-  else
-    return nil
+  if config.method == 'javascript' then
+    html_mod.ensure_html_dependency({
+      name = 'collapse-output',
+      version = '1.0.0',
+      scripts = {
+        { path = 'collapse-output.min.js', afterBody = true }
+      }
+    })
+    return annotate_for_javascript(div)
   end
+
+  return wrap_with_details(div)
 end
 
 --- Pandoc filter configuration.
---- Defines the order of filter execution:
---- 1. Get configuration from metadata
---- 2. Process Div elements for collapse functionality
+--- Order:
+--- 1. Reset and read configuration from metadata.
+--- 2. Process Div elements for collapse functionality.
 --- @type table
 return {
   { Meta = get_configuration },
-  { Div = process_div }
+  { Div = process_div },
 }
