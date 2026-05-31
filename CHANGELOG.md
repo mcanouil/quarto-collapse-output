@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.5.0 (2026-05-31)
+
 ### New Features
 
 - feat: Add `collapse-all-outputs` document option with per-cell `output-fold` override.

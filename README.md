@@ -5,7 +5,7 @@ A Quarto extension that provides the ability to collapse code cell outputs in HT
 ## Installation
 
 ```bash
-quarto add mcanouil/quarto-collapse-output@1.4.1
+quarto add mcanouil/quarto-collapse-output@1.5.0
 ```
 
 This will install the extension under the `_extensions` subdirectory.
