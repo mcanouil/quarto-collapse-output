@@ -6,9 +6,6 @@ authors:
   - name: "Mickaël CANOUIL, _Ph.D._"
     orcid: "0000-0002-3396-4549"
     url: "https://mickael.canouil.fr"
-# Quoted cells such as ```{r} would otherwise make Quarto select knitr and
-# try to spawn Rscript, which the Pages workflow does not install.
-engine: markdown
 ---
 
 A single model summary can run to forty lines, and a document with a dozen of them becomes a document about its own output.

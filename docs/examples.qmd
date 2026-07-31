@@ -2,9 +2,6 @@
 title: "Examples"
 subtitle: "Folded output you can open."
 description: "Cell output folded by the extension, one section per option, with the cell that produced each."
-# Quoted cells such as ```{r} would otherwise make Quarto select knitr and
-# try to spawn Rscript, which the Pages workflow does not install.
-engine: markdown
 ---
 
 Every fold below was produced by the extension as this page was rendered.
