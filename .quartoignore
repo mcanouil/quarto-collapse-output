@@ -1,3 +1,5 @@
 _extensions/collapse-output/collapse-output.js
 uv.lock
 pyproject.toml
+docs
+CITATION.cff

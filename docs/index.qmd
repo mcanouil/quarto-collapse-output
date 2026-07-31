@@ -1,0 +1,99 @@
+---
+title: "Collapse Output"
+subtitle: "Fold long cell output behind a summary."
+description: "What the collapse-output extension is for, how to enable it, and the smallest cell option that folds an output."
+authors:
+  - name: "Mickaël CANOUIL, _Ph.D._"
+    orcid: "0000-0002-3396-4549"
+    url: "https://mickael.canouil.fr"
+---
+
+A single model summary can run to forty lines, and a document with a dozen of them becomes a document about its own output.
+Quarto folds source code with `code-fold`, but the output beneath it stays where it is.
+
+`collapse-output` does the same for the output.
+A cell marked `output-fold: true` has its results wrapped in a `<details>` element, so the reader opens the ones they care about.
+
+## Installation
+
+```bash
+quarto add {{< var extension.reference >}}
+```
+
+This will install the extension under the `_extensions` subdirectory.
+If you are using version control, you will want to check in this directory.
+
+Or install it from your editor with [Quarto Wizard](https://m.canouil.dev/quarto-wizard):
+
+::: {.btn-group role="group" aria-label="Quarto Wizard installer options"}
+
+[Visual Studio Code](vscode://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in Visual Studio Code using the Quarto Wizard extension."}
+[Positron](positron://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in Positron using the Quarto Wizard extension."}
+[VSCodium](vscodium://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in VSCodium using the Quarto Wizard extension."}
+
+:::
+
+## Quick start
+
+Enable the filter:
+
+```yaml
+filters:
+  - collapse-output
+```
+
+Then mark a cell:
+
+````markdown
+```{r}
+#| output-fold: true
+
+summary(cars)
+```
+````
+
+The output is folded and the source is untouched:
+
+::: {.cell output-fold="true"}
+
+```r
+summary(cars)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+     speed           dist
+ Min.   : 4.0   Min.   :  2.00
+ 1st Qu.:12.0   1st Qu.: 26.00
+ Median :15.0   Median : 36.00
+ Mean   :15.4   Mean   : 42.98
+ 3rd Qu.:19.0   3rd Qu.: 56.00
+ Max.   :25.0   Max.   :120.00
+```
+
+:::
+
+:::
+
+Fold every cell in the document instead, and opt individual ones out:
+
+```yaml
+extensions:
+  collapse-output:
+    collapse-all-outputs: true
+```
+
+See the [Reference](reference.qmd) for every option, and the [Examples](examples.qmd) for each of them rendered.
+
+## Where it works
+
+HTML formats.
+`<details>` is an HTML element, so in every other format the output is left exactly as it was, unfolded and complete.
+
+## Links
+
+- [Reference](reference.qmd) for the full option list.
+- [Examples](examples.qmd) for folded output you can open.
+- [Changelog](changelog.qmd) for what each release changed.
+- [Source and issues](https://github.com/mcanouil/quarto-collapse-output) on GitHub.

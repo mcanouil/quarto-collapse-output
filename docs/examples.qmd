@@ -1,0 +1,210 @@
+---
+title: "Examples"
+subtitle: "Folded output you can open."
+description: "Cell output folded by the extension, one section per option, with the cell that produced each."
+---
+
+Every fold below was produced by the extension as this page was rendered.
+The site sets these defaults in `_quarto.yml`:
+
+```yaml
+extensions:
+  collapse-output:
+    method: lua
+    default-open: false
+    summary-template: "{type} ({lines} lines)"
+    summaries:
+      stdout: "Console output"
+      stderr: "Warnings and errors"
+```
+
+## Folding one cell
+
+````markdown
+```{r}
+#| output-fold: true
+
+summary(cars)
+```
+````
+
+::: {.cell output-fold="true"}
+
+```r
+summary(cars)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+     speed           dist
+ Min.   : 4.0   Min.   :  2.00
+ 1st Qu.:12.0   1st Qu.: 26.00
+ Median :15.0   Median : 36.00
+ Mean   :15.4   Mean   : 42.98
+ 3rd Qu.:19.0   3rd Qu.: 56.00
+ Max.   :25.0   Max.   :120.00
+```
+
+:::
+
+:::
+
+The summary comes from `summaries.stdout`, which this site sets to "Console output".
+
+## A summary of your own
+
+````markdown
+```{r}
+#| output-fold: true
+#| output-summary: "Click to view the model"
+
+summary(lm(dist ~ speed, data = cars))
+```
+````
+
+::: {.cell output-fold="true" output-summary="Click to view the model"}
+
+```r
+summary(lm(dist ~ speed, data = cars))
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)
+(Intercept) -17.5791     6.7584  -2.601   0.0123
+speed         3.9324     0.4155   9.464 1.49e-12
+```
+
+:::
+
+:::
+
+`output-summary` beats both `summaries` and `summary-template`.
+
+## Starting open
+
+````markdown
+```{r}
+#| output-fold: true
+#| output-open: true
+
+head(cars, 3)
+```
+````
+
+::: {.cell output-fold="true" output-open="true" output-summary="Already open"}
+
+```r
+head(cars, 3)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+  speed dist
+1     4    2
+2     4   10
+3     7    4
+```
+
+:::
+
+:::
+
+`output-open` overrides the document's `default-open`, which is `false` here.
+
+## Folding warnings and leaving results alone
+
+`output-types` restricts folding to the kinds of output named.
+
+```yaml
+extensions:
+  collapse-output:
+    output-types: stderr
+```
+
+The `summaries.stderr` entry then labels them:
+
+::: {.cell output-fold="true"}
+
+```r
+as.numeric("not a number")
+```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+Warning message:
+NAs introduced by coercion
+```
+
+:::
+
+:::
+
+## A template rather than fixed text
+
+`summary-template` fills in `{type}` and `{lines}`, so a reader knows the size of what they are opening before they open it.
+
+```yaml
+extensions:
+  collapse-output:
+    summary-template: "{type} ({lines} lines)"
+```
+
+::: {.cell output-fold="true"}
+
+```r
+print(letters)
+```
+
+::: {.cell-output .cell-output-display}
+
+```
+ [1] "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m"
+[14] "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"
+```
+
+:::
+
+:::
+
+No entry in `summaries` covers `display` on this site, so the template is used instead.
+
+## Folding everything
+
+Rather than marking each cell, fold the lot and opt out where it matters:
+
+```yaml
+extensions:
+  collapse-output:
+    collapse-all-outputs: true
+```
+
+````markdown
+```{r}
+#| output-fold: false
+
+plot(cars)
+```
+````
+
+`output-fold: false` on a cell still wins, so a plot worth seeing stays visible.
+
+Pair it with `auto-collapse-size` to fold only what is actually long:
+
+```yaml
+extensions:
+  collapse-output:
+    collapse-all-outputs: true
+    auto-collapse-size: 20
+```
+
+Outputs of twenty lines or more are forced closed, whatever `default-open` says.
+
+## Source
+
+The repository ships a short, standalone starting point you can copy: [`example.qmd`](https://github.com/mcanouil/quarto-collapse-output/blob/main/example.qmd).
