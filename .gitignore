@@ -3,3 +3,5 @@
 *.pdf
 *_files/
 /.luarc.json
+/.quarto/
+**/*.quarto_ipynb

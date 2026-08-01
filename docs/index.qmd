@@ -1,0 +1,83 @@
+---
+title: "Collapse Output"
+subtitle: "Fold long cell output behind a summary."
+description: "What the collapse-output extension is for, how to enable it, and the smallest cell option that folds an output."
+authors:
+  - name: "Mickaël CANOUIL, _Ph.D._"
+    orcid: "0000-0002-3396-4549"
+    url: "https://mickael.canouil.fr"
+engine: jupyter
+---
+
+A single model summary can run to forty lines, and a document with a dozen of them becomes a document about its own output.
+Quarto folds source code with `code-fold`, but the output beneath it stays where it is.
+
+`collapse-output` does the same for the output.
+A cell marked `output-fold: true` has its results wrapped in a `<details>` element, so the reader opens the ones they care about.
+
+## Installation
+
+```bash
+quarto add {{< var extension.reference >}}
+```
+
+This will install the extension under the `_extensions` subdirectory.
+If you are using version control, you will want to check in this directory.
+
+Or install it from your editor with [Quarto Wizard](https://m.canouil.dev/quarto-wizard):
+
+::: {.btn-group role="group" aria-label="Quarto Wizard installer options"}
+
+[Visual Studio Code](vscode://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in Visual Studio Code using the Quarto Wizard extension."}
+[Positron](positron://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in Positron using the Quarto Wizard extension."}
+[VSCodium](vscodium://mcanouil.quarto-wizard/install?repo={{< var extension.wizard-reference >}}){.btn .btn-outline-primary title="Install {{< var extension.reference >}} in VSCodium using the Quarto Wizard extension."}
+
+:::
+
+## Quick start
+
+Enable the filter:
+
+```yaml
+filters:
+  - collapse-output
+```
+
+Then mark a cell with `output-fold: true`, and its output is folded while the source stays where it was:
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+
+for i in range(24):
+    print(f"line {i}")
+```
+
+Every fold on this site is produced that way, by the filter, as the page is rendered.
+
+Fold every cell in the document instead, and opt individual ones out:
+
+```yaml
+extensions:
+  collapse-output:
+    collapse-all-outputs: true
+```
+
+See the [Reference](reference.qmd) for every option, and the [Examples](examples.qmd) for each of them rendered.
+
+::: {.callout-note}
+The filter acts on the cell and cell-output elements Quarto emits, not on any one engine.
+[Examples](examples.qmd) runs Python through Jupyter and [Examples in R](examples-r.qmd) runs R through knitr; neither is configured differently.
+:::
+
+## Where it works
+
+HTML formats.
+`<details>` is an HTML element, so in every other format the output is left exactly as it was, unfolded and complete.
+
+## Links
+
+- [Reference](reference.qmd) for the full option list.
+- [Examples](examples.qmd) for folded output you can open, and [Examples in R](examples-r.qmd) for the same from knitr.
+- [Changelog](changelog.qmd) for what each release changed.
+- [Source and issues](https://github.com/mcanouil/quarto-collapse-output) on GitHub.

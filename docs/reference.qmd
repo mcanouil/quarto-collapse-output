@@ -1,0 +1,123 @@
+---
+title: "Reference"
+subtitle: "Every option the collapse-output extension accepts."
+description: "The complete collapse-output configuration: the cell options, the document options, the two rendering methods, and how a summary is chosen."
+engine: jupyter
+---
+
+## Enabling the filter
+
+```yaml
+filters:
+  - collapse-output
+```
+
+## Cell options
+
+Written as Quarto cell options, with the `#|` prefix.
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "Click to view results"
+#| output-open: false
+
+print("Folded, under a summary this cell set for itself.")
+```
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `output-fold` | boolean | `false` | Folds this cell's output. Set to `false` to opt out when `collapse-all-outputs` is on. |
+| `output-summary` | string | | The summary text for this cell. Overrides both `summary-template` and `summaries`. |
+| `output-open` | boolean | | Whether this cell starts open, overriding `default-open`. |
+
+: Cell options. {.striped .hover tbl-colwidths="[18,12,10,60]"}
+
+## Document options
+
+```yaml
+extensions:
+  collapse-output:
+    method: lua
+    collapse-all-outputs: false
+    default-open: false
+    auto-collapse-size: 20
+    output-types: stdout, stderr, display
+    summary-template: "{type} ({lines} lines)"
+    summaries:
+      stdout: "Console output"
+      stderr: "Warnings and errors"
+```
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `method` | `lua` or `javascript` | `lua` | Where the folding happens: at render time, or in the browser. |
+| `collapse-all-outputs` | boolean | `false` | Folds every cell output, without marking each cell. |
+| `default-open` | boolean | `false` | Whether folded output starts open. |
+| `auto-collapse-size` | integer | | Outputs with at least this many lines are forced closed, whatever `default-open` says. |
+| `output-types` | string or list | all | Which kinds of output to fold: `stdout`, `stderr`, `display`, `output`. A comma-separated string or a YAML list. A name that is not one of the four is dropped with a warning. |
+| `summary-template` | string | `{type}` | The summary text, when a cell gives none. Takes `{type}` and `{lines}`. |
+| `summaries` | object | | Summary text per output type, keyed by the names above. |
+
+: Document and project options. {.striped .hover tbl-colwidths="[20,17,10,53]"}
+
+::: {.callout-note}
+An `extensions` block in a document's front matter replaces the project's `extensions` block rather than merging into it.
+A page that sets one option there has to restate the rest, including the configuration of any other extension the project sets.
+:::
+
+## Output types
+
+Each kind of output Quarto emits carries its own class, and `output-types` selects among them.
+
+| Name | What it is |
+| --- | --- |
+| `stdout` | Printed results and console text. |
+| `stderr` | Warnings and error messages. |
+| `display` | Rich display output: plots, tables, HTML widgets. |
+| `output` | Any cell output not covered above. |
+
+: Output types. {.striped .hover tbl-colwidths="[18,82]"}
+
+Restricting the list leaves everything else unfolded, which is the usual way to fold noisy warnings while leaving plots visible.
+
+## How the summary is chosen
+
+The first of these that applies wins:
+
+1. The cell's own `output-summary`.
+2. The entry in `summaries` for that output type.
+3. `summary-template`, with `{type}` and `{lines}` filled in.
+
+`{lines}` counts the lines of the output being folded, so `"{type} ({lines} lines)"` tells a reader what they are opening.
+The count is taken from the text of the block, which suits console output; rich display output is one block whatever it draws, so a figure or a table reports a single line, or none when it carries no text.
+An entry in `summaries` for a given type replaces the template for that type entirely, so a type you name there never shows a line count.
+
+## The two methods
+
+| Method | When it runs | Trade-off |
+| --- | --- | --- |
+| `lua` | At render time. The `<details>` elements are in the file Quarto writes. | Works without JavaScript, and the folded state is in the HTML. |
+| `javascript` | In the browser, after the page loads. | Adds a script; a reader with JavaScript disabled sees every output unfolded. |
+
+: Rendering methods. {.striped .hover tbl-colwidths="[14,36,50]"}
+
+A `method` that is neither of the two is reported as a warning and the render continues with `lua`.
+An `auto-collapse-size` that is not a non-negative integer is reported the same way and ignored.
+
+## Precedence
+
+Whether an output is folded at all:
+
+- `output-fold` on a cell beats `collapse-all-outputs`, in both directions.
+
+Whether a fold starts open:
+
+- `auto-collapse-size` comes first, and forces a long output closed whatever the rest say.
+- `output-open` on a cell beats `default-open`.
+
+## Limitations
+
+- HTML formats only. Elsewhere the output is left alone rather than folded.
+- Folding applies to cell output, not to the source. Quarto's own `code-fold` covers the source.
+- `output-fold` and `output-summary` are cell options, so they need the `#|` prefix rather than a chunk attribute.

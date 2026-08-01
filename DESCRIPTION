@@ -1,0 +1,11 @@
+Type: project
+Title: Documentation Environment for the Collapse Output Extension
+Description: Declares the R packages the documentation website needs, so
+    renv resolves them from this file rather than by scanning the sources,
+    which for a documentation site would pick up whatever a code sample
+    happens to mention. This is not an R package: `Type: project` is what
+    tells renv so, and keeps it from writing an .Rbuildignore.
+Encoding: UTF-8
+Imports:
+    knitr,
+    rmarkdown

@@ -1,0 +1,144 @@
+---
+title: "Examples"
+subtitle: "Folded output you can open."
+description: "Cell output folded by the extension as this page runs, one section per option, with the cell that produced each."
+engine: jupyter
+---
+
+Every fold below was produced by the extension as this page was rendered, from a cell that actually ran.
+The site sets these defaults in `_quarto.yml`:
+
+```yaml
+extensions:
+  collapse-output:
+    method: lua
+    default-open: false
+    summary-template: "{type} ({lines} lines)"
+    summaries:
+      stderr: "Warnings and errors"
+```
+
+## Folding one cell
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+
+for i in range(24):
+    print(f"line {i}")
+```
+
+The summary comes from `summary-template`: `{type}` resolves to the kind of output and `{lines}` to the number of lines behind the fold.
+
+## A summary of your own
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "Click to view the results"
+
+for row in [(n, n * n, n ** 3) for n in range(1, 13)]:
+    print(f"{row[0]:>3} {row[1]:>5} {row[2]:>7}")
+```
+
+`output-summary` beats both `summaries` and `summary-template`.
+
+## Starting open
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+#| output-open: true
+
+print("This output starts visible.")
+print("The reader can fold it away.")
+```
+
+`output-open` overrides the document's `default-open`, which is `false` here.
+
+## Warnings and errors
+
+Output on the error stream is folded separately, and takes its own summary.
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+
+import sys
+
+print("A result on the standard stream.")
+print("Followed by a second line.")
+print("A warning on the error stream.", file=sys.stderr)
+```
+
+The error stream takes its summary from `summaries.stderr`, while the standard stream has no entry there and falls back to the template.
+Set `output-types` to fold only the kinds of output you name.
+
+## Rich output
+
+A plot is display output rather than console text, so it is folded under its own type.
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "The figure"
+
+import matplotlib.pyplot as plt
+
+figure, axes = plt.subplots(figsize=(5, 3))
+axes.plot([n * n for n in range(12)], marker="o")
+axes.set_title("Squares")
+plt.show()
+```
+
+## A template rather than fixed text
+
+`summary-template` fills in `{type}` and `{lines}`, so a reader knows how much is behind the fold before they open it.
+
+```yaml
+extensions:
+  collapse-output:
+    summary-template: "{type} ({lines} lines)"
+```
+
+The cell below sets no summary of its own and no entry in `summaries` covers its type, so the template is used, and reports a shorter output than the first fold on this page:
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+
+for name in ["alpha", "beta", "gamma", "delta", "epsilon"]:
+    print(name.upper())
+```
+
+`{lines}` counts lines of text, which suits console output.
+Rich display output is one block whatever it draws, so a figure reports a single line, or none when it carries no text of its own.
+
+## Folding everything
+
+Rather than marking each cell, fold the lot and opt out where it matters:
+
+```yaml
+extensions:
+  collapse-output:
+    collapse-all-outputs: true
+```
+
+Every cell then folds without being marked, and a cell that should stay visible opts out with `#| output-fold: false`.
+
+The setting covers a whole document, so this page does not use it: it would fold the cells above whether or not they marked themselves, and there would be nothing left to show.
+
+Pair `collapse-all-outputs` with `auto-collapse-size` to fold only what is actually long:
+
+```yaml
+extensions:
+  collapse-output:
+    collapse-all-outputs: true
+    auto-collapse-size: 20
+```
+
+Outputs of twenty lines or more are forced closed, whatever `default-open` says.
+
+## Source
+
+The repository ships a short, standalone starting point you can copy: [`example.qmd`](https://github.com/mcanouil/quarto-collapse-output/blob/main/example.qmd).
