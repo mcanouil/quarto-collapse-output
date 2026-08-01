@@ -16,7 +16,9 @@ project:
   pre-render: ./_scripts/pre-render.sh
   post-render: ./_scripts/post-render.sh
 
-engine: jupyter
+# The pages set their own engine: the examples run Python through Jupyter, and
+# examples-r.qmd runs R through knitr, from the renv environment at the
+# repository root.
 jupyter: python3
 
 website:
@@ -59,6 +61,8 @@ website:
         text: "Reference"
       - href: examples.qmd
         text: "Examples"
+      - href: examples-r.qmd
+        text: "Examples in R"
       - text: "---"
       - href: changelog.qmd
         text: "Changelog"

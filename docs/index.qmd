@@ -6,6 +6,7 @@ authors:
   - name: "Mickaël CANOUIL, _Ph.D._"
     orcid: "0000-0002-3396-4549"
     url: "https://mickael.canouil.fr"
+engine: jupyter
 ---
 
 A single model summary can run to forty lines, and a document with a dozen of them becomes a document about its own output.
@@ -64,6 +65,11 @@ extensions:
 
 See the [Reference](reference.qmd) for every option, and the [Examples](examples.qmd) for each of them rendered.
 
+::: {.callout-note}
+The filter acts on the cell and cell-output elements Quarto emits, not on any one engine.
+[Examples](examples.qmd) runs Python through Jupyter and [Examples in R](examples-r.qmd) runs R through knitr; neither is configured differently.
+:::
+
 ## Where it works
 
 HTML formats.
@@ -72,6 +78,6 @@ HTML formats.
 ## Links
 
 - [Reference](reference.qmd) for the full option list.
-- [Examples](examples.qmd) for folded output you can open.
+- [Examples](examples.qmd) for folded output you can open, and [Examples in R](examples-r.qmd) for the same from knitr.
 - [Changelog](changelog.qmd) for what each release changed.
 - [Source and issues](https://github.com/mcanouil/quarto-collapse-output) on GitHub.

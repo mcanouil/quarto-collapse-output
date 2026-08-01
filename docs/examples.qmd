@@ -2,6 +2,7 @@
 title: "Examples"
 subtitle: "Folded output you can open."
 description: "Cell output folded by the extension as this page runs, one section per option, with the cell that produced each."
+engine: jupyter
 ---
 
 Every fold below was produced by the extension as this page was rendered, from a cell that actually ran.

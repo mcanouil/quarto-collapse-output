@@ -2,6 +2,7 @@
 title: "Reference"
 subtitle: "Every option the collapse-output extension accepts."
 description: "The complete collapse-output configuration: the cell options, the document options, the two rendering methods, and how a summary is chosen."
+engine: jupyter
 ---
 
 ## Enabling the filter

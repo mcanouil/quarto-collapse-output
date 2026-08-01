@@ -1,0 +1,81 @@
+---
+title: "Examples in R"
+subtitle: "The same folds, from the knitr engine."
+description: "The collapse-output filter folding output from R cells, showing that it works on what Quarto emits rather than on any one engine."
+engine: knitr
+---
+
+The [Examples](examples.qmd) page runs Python through Jupyter.
+This one runs R through knitr, from the renv environment declared at the repository root.
+
+The filter acts on the cell and cell-output elements Quarto emits, which are the same whichever engine produced them, so nothing here is configured differently.
+
+## Folding one cell
+
+```{r}
+#| echo: fenced
+#| output-fold: true
+
+summary(cars)
+```
+
+The summary comes from `summaries.stdout`, set once for the whole site.
+
+## A summary of your own
+
+```{r}
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "Click to view the model"
+
+summary(lm(dist ~ speed, data = cars))
+```
+
+## Starting open
+
+```{r}
+#| echo: fenced
+#| output-fold: true
+#| output-open: true
+
+head(cars, 3)
+```
+
+## Warnings and errors
+
+```{r}
+#| echo: fenced
+#| output-fold: true
+
+message("A message on the error stream.")
+as.numeric("not a number")
+```
+
+Output on the error stream is folded separately, under `summaries.stderr`.
+
+## Rich output
+
+```{r}
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "The figure"
+
+plot(cars, pch = 19, main = "Speed and stopping distance")
+```
+
+A plot is display output rather than console text, and is folded under its own type.
+
+## The environment
+
+The R above runs in the renv environment declared at the repository root:
+
+```yaml
+# docs/.Rprofile
+source("../renv/activate.R")
+```
+
+There is one `renv.lock` for the repository, and the website uses it rather than keeping a second copy in step.
+
+## Source
+
+The repository ships a short, standalone starting point you can copy: [`example.qmd`](https://github.com/mcanouil/quarto-collapse-output/blob/main/example.qmd).

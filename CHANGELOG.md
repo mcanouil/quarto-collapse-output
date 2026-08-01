@@ -9,6 +9,8 @@
 - docs: Add the Pages workflow, which renders `docs/` on pull requests and deploys it from the release tag.
 - docs: Add the Quarto Extensions Updates workflow, scanning `docs` for the website's own dependencies.
 - docs: Fold real executed output on the website rather than hand-written cell markup, so every fold is produced by the filter from a cell that ran.
+- docs: Add an R page alongside the Python one, run through knitr, so the website shows the filter folding output from both engines.
+- docs: Add an renv environment at the repository root, shared by the website through `docs/.Rprofile`, so there is one lockfile rather than two to keep in step.
 
 ## 1.5.0 (2026-05-31)
 
