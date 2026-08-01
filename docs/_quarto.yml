@@ -127,12 +127,14 @@ extensions:
     # Blocks here are configuration to copy rather than files to save, so a
     # filename derived from the language would only add noise.
     auto-filename: false
-  # Defaults for the examples page. Individual cells there override each of
+  # Defaults for the examples pages. Individual cells there override each of
   # them, so both levels of configuration are visible in the output.
+  # Only stderr is given a fixed summary: everything else falls through to the
+  # template, so the pages show `{lines}` resolving against real output rather
+  # than being overridden before it is ever used.
   collapse-output:
     method: lua
     default-open: false
     summary-template: "{type} ({lines} lines)"
     summaries:
-      stdout: "Console output"
       stderr: "Warnings and errors"

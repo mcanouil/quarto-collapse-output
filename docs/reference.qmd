@@ -55,11 +55,16 @@ extensions:
 | `collapse-all-outputs` | boolean | `false` | Folds every cell output, without marking each cell. |
 | `default-open` | boolean | `false` | Whether folded output starts open. |
 | `auto-collapse-size` | integer | | Outputs with at least this many lines are forced closed, whatever `default-open` says. |
-| `output-types` | list | all | Which kinds of output to fold: `stdout`, `stderr`, `display`, `output`. |
+| `output-types` | string or list | all | Which kinds of output to fold: `stdout`, `stderr`, `display`, `output`. A comma-separated string or a YAML list. A name that is not one of the four is dropped with a warning. |
 | `summary-template` | string | `{type}` | The summary text, when a cell gives none. Takes `{type}` and `{lines}`. |
 | `summaries` | object | | Summary text per output type, keyed by the names above. |
 
 : Document and project options. {.striped .hover tbl-colwidths="[20,17,10,53]"}
+
+::: {.callout-note}
+An `extensions` block in a document's front matter replaces the project's `extensions` block rather than merging into it.
+A page that sets one option there has to restate the rest, including the configuration of any other extension the project sets.
+:::
 
 ## Output types
 
@@ -85,6 +90,8 @@ The first of these that applies wins:
 3. `summary-template`, with `{type}` and `{lines}` filled in.
 
 `{lines}` counts the lines of the output being folded, so `"{type} ({lines} lines)"` tells a reader what they are opening.
+The count is taken from the text of the block, which suits console output; rich display output is one block whatever it draws, so a figure or a table reports a single line, or none when it carries no text.
+An entry in `summaries` for a given type replaces the template for that type entirely, so a type you name there never shows a line count.
 
 ## The two methods
 
@@ -95,11 +102,19 @@ The first of these that applies wins:
 
 : Rendering methods. {.striped .hover tbl-colwidths="[14,36,50]"}
 
+A `method` that is neither of the two is reported as a warning and the render continues with `lua`.
+An `auto-collapse-size` that is not a non-negative integer is reported the same way and ignored.
+
 ## Precedence
 
+Whether an output is folded at all:
+
 - `output-fold` on a cell beats `collapse-all-outputs`, in both directions.
+
+Whether a fold starts open:
+
+- `auto-collapse-size` comes first, and forces a long output closed whatever the rest say.
 - `output-open` on a cell beats `default-open`.
-- `auto-collapse-size` beats both, and forces a long output closed.
 
 ## Limitations
 

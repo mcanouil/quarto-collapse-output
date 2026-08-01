@@ -19,7 +19,7 @@ The filter acts on the cell and cell-output elements Quarto emits, which are the
 summary(cars)
 ```
 
-The summary comes from `summaries.stdout`, set once for the whole site.
+The summary comes from `summary-template`, set once for the whole site, and its line count is measured from the output above.
 
 ## A summary of your own
 
@@ -49,9 +49,10 @@ head(cars, 3)
 
 message("A message on the error stream.")
 as.numeric("not a number")
+head(cars, 3)
 ```
 
-Output on the error stream is folded separately, under `summaries.stderr`.
+Output on the error stream is folded separately, under `summaries.stderr`, while the standard stream falls back to the template.
 
 ## Rich output
 
@@ -64,37 +65,6 @@ plot(cars, pch = 19, main = "Speed and stopping distance")
 ```
 
 A plot is display output rather than console text, and is folded under its own type.
-
-## The environment
-
-The R above runs in the renv environment declared at the repository root, which `docs/.Rprofile` activates:
-
-```r
-# docs/.Rprofile
-source("../renv/activate.R")
-```
-
-There is one `renv.lock` for the repository, and the website uses it rather than keeping a second copy in step.
-
-The packages are declared rather than discovered.
-`DESCRIPTION` lists what the documentation needs:
-
-```txt
-Type: project
-Imports:
-    knitr,
-    rmarkdown
-```
-
-`Type: project` is what tells renv this is not an R package, which also keeps it from writing an `.Rbuildignore`.
-
-and renv is set to resolve from it:
-
-```r
-renv::settings$snapshot.type("explicit")
-```
-
-So the lockfile records those two and their dependencies, and nothing that merely appears in a code sample.
 
 ## Source
 

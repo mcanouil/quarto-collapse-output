@@ -15,7 +15,6 @@ extensions:
     default-open: false
     summary-template: "{type} ({lines} lines)"
     summaries:
-      stdout: "Console output"
       stderr: "Warnings and errors"
 ```
 
@@ -29,7 +28,7 @@ for i in range(24):
     print(f"line {i}")
 ```
 
-The summary comes from `summaries.stdout`, which this site sets to "Console output".
+The summary comes from `summary-template`: `{type}` resolves to the kind of output and `{lines}` to the number of lines behind the fold.
 
 ## A summary of your own
 
@@ -68,10 +67,12 @@ Output on the error stream is folded separately, and takes its own summary.
 import sys
 
 print("A result on the standard stream.")
+print("Followed by a second line.")
 print("A warning on the error stream.", file=sys.stderr)
 ```
 
-`summaries.stderr` labels that one, and `output-types` restricts folding to the kinds of output you name.
+The error stream takes its summary from `summaries.stderr`, while the standard stream has no entry there and falls back to the template.
+Set `output-types` to fold only the kinds of output you name.
 
 ## Rich output
 
@@ -92,7 +93,7 @@ plt.show()
 
 ## A template rather than fixed text
 
-`summary-template` fills in `{type}` and `{lines}`, so a reader knows the size of what they are opening before they open it.
+`summary-template` fills in `{type}` and `{lines}`, so a reader knows how much is behind the fold before they open it.
 
 ```yaml
 extensions:
@@ -100,16 +101,18 @@ extensions:
     summary-template: "{type} ({lines} lines)"
 ```
 
-The cell below sets no summary of its own and no entry in `summaries` covers its type, so the template is used:
+The cell below sets no summary of its own and no entry in `summaries` covers its type, so the template is used, and reports a shorter output than the first fold on this page:
 
 ```{python}
 #| echo: fenced
 #| output-fold: true
 
-from IPython.display import Markdown
-
-Markdown("\n".join(f"- item {n}" for n in range(1, 9)))
+for name in ["alpha", "beta", "gamma", "delta", "epsilon"]:
+    print(name.upper())
 ```
+
+`{lines}` counts lines of text, which suits console output.
+Rich display output is one block whatever it draws, so a figure reports a single line, or none when it carries no text of its own.
 
 ## Folding everything
 
@@ -121,16 +124,11 @@ extensions:
     collapse-all-outputs: true
 ```
 
-```{python}
-#| echo: fenced
-#| output-fold: false
+Every cell then folds without being marked, and a cell that should stay visible opts out with `#| output-fold: false`.
 
-print("This one stays visible, because the cell opts out.")
-```
+The setting covers a whole document, so this page does not use it: it would fold the cells above whether or not they marked themselves, and there would be nothing left to show.
 
-`output-fold: false` on a cell still wins, so a plot worth seeing stays visible.
-
-Pair it with `auto-collapse-size` to fold only what is actually long:
+Pair `collapse-all-outputs` with `auto-collapse-size` to fold only what is actually long:
 
 ```yaml
 extensions:
