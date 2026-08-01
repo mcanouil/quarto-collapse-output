@@ -1,10 +1,10 @@
 ---
 title: "Examples"
 subtitle: "Folded output you can open."
-description: "Cell output folded by the extension, one section per option, with the cell that produced each."
+description: "Cell output folded by the extension as this page runs, one section per option, with the cell that produced each."
 ---
 
-Every fold below was produced by the extension as this page was rendered.
+Every fold below was produced by the extension as this page was rendered, from a cell that actually ran.
 The site sets these defaults in `_quarto.yml`:
 
 ```yaml
@@ -20,130 +20,76 @@ extensions:
 
 ## Folding one cell
 
-````markdown
-```{r}
+```{python}
+#| echo: fenced
 #| output-fold: true
 
-summary(cars)
+for i in range(24):
+    print(f"line {i}")
 ```
-````
-
-::: {.cell output-fold="true"}
-
-```r
-summary(cars)
-```
-
-::: {.cell-output .cell-output-stdout}
-
-```
-     speed           dist
- Min.   : 4.0   Min.   :  2.00
- 1st Qu.:12.0   1st Qu.: 26.00
- Median :15.0   Median : 36.00
- Mean   :15.4   Mean   : 42.98
- 3rd Qu.:19.0   3rd Qu.: 56.00
- Max.   :25.0   Max.   :120.00
-```
-
-:::
-
-:::
 
 The summary comes from `summaries.stdout`, which this site sets to "Console output".
 
 ## A summary of your own
 
-````markdown
-```{r}
+```{python}
+#| echo: fenced
 #| output-fold: true
-#| output-summary: "Click to view the model"
+#| output-summary: "Click to view the results"
 
-summary(lm(dist ~ speed, data = cars))
+for row in [(n, n * n, n ** 3) for n in range(1, 13)]:
+    print(f"{row[0]:>3} {row[1]:>5} {row[2]:>7}")
 ```
-````
-
-::: {.cell output-fold="true" output-summary="Click to view the model"}
-
-```r
-summary(lm(dist ~ speed, data = cars))
-```
-
-::: {.cell-output .cell-output-stdout}
-
-```
-Coefficients:
-            Estimate Std. Error t value Pr(>|t|)
-(Intercept) -17.5791     6.7584  -2.601   0.0123
-speed         3.9324     0.4155   9.464 1.49e-12
-```
-
-:::
-
-:::
 
 `output-summary` beats both `summaries` and `summary-template`.
 
 ## Starting open
 
-````markdown
-```{r}
+```{python}
+#| echo: fenced
 #| output-fold: true
 #| output-open: true
 
-head(cars, 3)
+print("This output starts visible.")
+print("The reader can fold it away.")
 ```
-````
-
-::: {.cell output-fold="true" output-open="true" output-summary="Already open"}
-
-```r
-head(cars, 3)
-```
-
-::: {.cell-output .cell-output-stdout}
-
-```
-  speed dist
-1     4    2
-2     4   10
-3     7    4
-```
-
-:::
-
-:::
 
 `output-open` overrides the document's `default-open`, which is `false` here.
 
-## Folding warnings and leaving results alone
+## Warnings and errors
 
-`output-types` restricts folding to the kinds of output named.
+Output on the error stream is folded separately, and takes its own summary.
 
-```yaml
-extensions:
-  collapse-output:
-    output-types: stderr
+```{python}
+#| echo: fenced
+#| output-fold: true
+
+import sys
+
+print("A result on the standard stream.")
+print("A warning on the error stream.", file=sys.stderr)
 ```
 
-The `summaries.stderr` entry then labels them:
+`summaries.stderr` labels that one, and `output-types` restricts folding to the kinds of output you name.
 
-::: {.cell output-fold="true"}
+## Rich output
 
-```r
-as.numeric("not a number")
+A plot is display output rather than console text, so it is folded under its own type.
+
+```{python}
+#| echo: fenced
+#| output-fold: true
+#| output-summary: "The figure"
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+figure, axes = plt.subplots(figsize=(5, 3))
+axes.plot([n * n for n in range(12)], marker="o")
+axes.set_title("Squares")
+plt.show()
 ```
-
-::: {.cell-output .cell-output-stderr}
-
-```
-Warning message:
-NAs introduced by coercion
-```
-
-:::
-
-:::
 
 ## A template rather than fixed text
 
@@ -155,24 +101,16 @@ extensions:
     summary-template: "{type} ({lines} lines)"
 ```
 
-::: {.cell output-fold="true"}
+The cell below sets no summary of its own and no entry in `summaries` covers its type, so the template is used:
 
-```r
-print(letters)
+```{python}
+#| echo: fenced
+#| output-fold: true
+
+from IPython.display import Markdown
+
+Markdown("\n".join(f"- item {n}" for n in range(1, 9)))
 ```
-
-::: {.cell-output .cell-output-display}
-
-```
- [1] "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m"
-[14] "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"
-```
-
-:::
-
-:::
-
-No entry in `summaries` covers `display` on this site, so the template is used instead.
 
 ## Folding everything
 
@@ -184,13 +122,12 @@ extensions:
     collapse-all-outputs: true
 ```
 
-````markdown
-```{r}
+```{python}
+#| echo: fenced
 #| output-fold: false
 
-plot(cars)
+print("This one stays visible, because the cell opts out.")
 ```
-````
 
 `output-fold: false` on a cell still wins, so a plot worth seeing stays visible.
 

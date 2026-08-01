@@ -42,39 +42,17 @@ filters:
   - collapse-output
 ```
 
-Then mark a cell:
+Then mark a cell with `output-fold: true`, and its output is folded while the source stays where it was:
 
-````markdown
-```{r}
+```{python}
+#| echo: fenced
 #| output-fold: true
 
-summary(cars)
-```
-````
-
-The output is folded and the source is untouched:
-
-::: {.cell output-fold="true"}
-
-```r
-summary(cars)
+for i in range(24):
+    print(f"line {i}")
 ```
 
-::: {.cell-output .cell-output-stdout}
-
-```
-     speed           dist
- Min.   : 4.0   Min.   :  2.00
- 1st Qu.:12.0   1st Qu.: 26.00
- Median :15.0   Median : 36.00
- Mean   :15.4   Mean   : 42.98
- 3rd Qu.:19.0   3rd Qu.: 56.00
- Max.   :25.0   Max.   :120.00
-```
-
-:::
-
-:::
+Every fold on this site is produced that way, by the filter, as the page is rendered.
 
 Fold every cell in the document instead, and opt individual ones out:
 

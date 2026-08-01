@@ -16,6 +16,9 @@ project:
   pre-render: ./_scripts/pre-render.sh
   post-render: ./_scripts/post-render.sh
 
+engine: jupyter
+jupyter: python3
+
 website:
   title: "Collapse Output"
   description: "A Quarto filter that folds code cell outputs into collapsible details elements in HTML documents."

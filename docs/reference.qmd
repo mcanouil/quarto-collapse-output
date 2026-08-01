@@ -15,15 +15,14 @@ filters:
 
 Written as Quarto cell options, with the `#|` prefix.
 
-````markdown
-```{r}
+```{python}
+#| echo: fenced
 #| output-fold: true
 #| output-summary: "Click to view results"
 #| output-open: false
 
-summary(cars)
+print("Folded, under a summary this cell set for itself.")
 ```
-````
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
