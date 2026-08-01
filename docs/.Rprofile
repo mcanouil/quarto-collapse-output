@@ -2,6 +2,8 @@
 # repository root rather than carrying a lockfile of its own: the R the pages
 # execute is the R the extension is developed against.
 #
-# The root .Rprofile activates renv by a path relative to itself, so the
-# activate script is sourced directly rather than through it.
+# RENV_PROJECT has to be set before the activate script runs. Without it renv
+# takes the working directory for the project, looks for docs/renv/library, and
+# finds nothing.
+Sys.setenv(RENV_PROJECT = normalizePath("..", mustWork = TRUE))
 source("../renv/activate.R")
