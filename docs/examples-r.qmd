@@ -67,14 +67,31 @@ A plot is display output rather than console text, and is folded under its own t
 
 ## The environment
 
-The R above runs in the renv environment declared at the repository root:
+The R above runs in the renv environment declared at the repository root, which `docs/.Rprofile` activates:
 
-```yaml
+```r
 # docs/.Rprofile
 source("../renv/activate.R")
 ```
 
 There is one `renv.lock` for the repository, and the website uses it rather than keeping a second copy in step.
+
+The packages are declared rather than discovered.
+`DESCRIPTION` lists what the documentation needs:
+
+```txt
+Imports:
+    knitr,
+    rmarkdown
+```
+
+and renv is set to resolve from it:
+
+```r
+renv::settings$snapshot.type("explicit")
+```
+
+So the lockfile records those two and their dependencies, and nothing that merely appears in a code sample.
 
 ## Source
 

@@ -12,7 +12,7 @@
   "ppm.ignored.urls": [],
   "r.version": null,
   "snapshot.dev": false,
-  "snapshot.type": "implicit",
+  "snapshot.type": "explicit",
   "use.cache": true,
   "vcs.ignore.cellar": true,
   "vcs.ignore.library": true,
