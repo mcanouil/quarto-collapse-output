@@ -81,8 +81,6 @@ A plot is display output rather than console text, so it is folded under its own
 #| output-fold: true
 #| output-summary: "The figure"
 
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 figure, axes = plt.subplots(figsize=(5, 3))
