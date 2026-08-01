@@ -42,8 +42,7 @@ attributes:
       description: "Wrap cell output in a collapsible details element."
     output-summary:
       type: string
-      default: "Code Output"
-      description: "Summary text shown on the collapsed output toggle. Overrides templates and per-type summaries."
+      description: "Summary text shown on the collapsed output toggle, taking precedence over both `summaries` and `summary-template`. Unset, the summary comes from `summaries` for the detected output type, then from `summary-template`."
     output-open:
       type: boolean
       description: "Per-cell override of the document 'default-open' setting."
