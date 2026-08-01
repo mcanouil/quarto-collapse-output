@@ -80,10 +80,13 @@ The packages are declared rather than discovered.
 `DESCRIPTION` lists what the documentation needs:
 
 ```txt
+Type: project
 Imports:
     knitr,
     rmarkdown
 ```
+
+`Type: project` is what tells renv this is not an R package, which also keeps it from writing an `.Rbuildignore`.
 
 and renv is set to resolve from it:
 
