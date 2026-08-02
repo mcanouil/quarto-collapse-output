@@ -2,14 +2,14 @@
 # Provides configuration validation and IDE support for options
 # and attributes.
 
-$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v1/extension-schema.json
+$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v2/extension-schema.json
 
 options:
   method:
     type: string
     default: "lua"
     enum: [lua, javascript]
-    enum-case-insensitive: true
+    enumCaseInsensitive: true
     description: "Collapsing method. 'lua' renders server-side; 'javascript' renders client-side."
   collapse-all-outputs:
     type: boolean

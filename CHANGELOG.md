@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Refactoring
+
+- refactor: Target the Quarto Wizard v2 extension schema in `_schema.yml`, renaming `enum-case-insensitive` to `enumCaseInsensitive`.
+
 ## 1.5.1 (2026-08-01)
 
 ### Documentation
