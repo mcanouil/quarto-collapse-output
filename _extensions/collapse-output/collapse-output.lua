@@ -1,4 +1,4 @@
---- @module collapse-output
+--- @module "collapse-output"
 --- @license MIT
 --- @copyright 2026 Mickaël Canouil
 --- @author Mickaël Canouil
