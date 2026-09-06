@@ -11,6 +11,22 @@ local str = require(quarto.utils.resolve_path('_vendor/quarto-lua-modules/string
 local log = require(quarto.utils.resolve_path('_vendor/quarto-lua-modules/logging.lua'):gsub('%.lua$', ''))
 local meta_mod = require(quarto.utils.resolve_path('_vendor/quarto-lua-modules/metadata.lua'):gsub('%.lua$', ''))
 local html_mod = require(quarto.utils.resolve_path('_vendor/quarto-lua-modules/html.lua'):gsub('%.lua$', ''))
+local schema = require(quarto.utils.resolve_path('_vendor/quarto-wizard/schema.lua'):gsub('%.lua$', ''))
+local check = require(quarto.utils.resolve_path('_vendor/quarto-lua-modules/schema-check.lua'):gsub('%.lua$', ''))
+
+--- The schema check, built once and reused by the whole render. It reads
+--- `_schema.yml` on the way in and checks the document configuration once.
+---
+--- The validator is injected rather than required by the check module, so the
+--- two vendored sources stay independent of where the other was placed.
+---
+--- The extension contributes a filter and no shortcode, so the check runs from
+--- the `Meta` handler, which is the only place the document configuration is
+--- available.
+---
+--- A schema that cannot be read is reported by the module as an error and the
+--- render carries on: a configuration file must not stop a document.
+local checker = check.new(schema, EXTENSION_NAME)
 
 --- Supported output-type identifiers and the Pandoc Div classes they map to.
 local OUTPUT_TYPE_CLASSES = {
@@ -162,10 +178,13 @@ local function parse_per_type_summaries(value)
 end
 
 --- Read filter configuration from document metadata.
---- Resets per-document state, then populates `config` from `extensions.collapse-output`.
+--- Checks the document configuration against the schema, resets per-document
+--- state, then populates `config` from `extensions.collapse-output`.
 --- @param meta table The document metadata table.
 --- @return table The metadata table (unchanged).
 local function get_configuration(meta)
+  checker:options(meta)
+
   reset_config()
 
   local meta_method = meta_mod.get_metadata_value(meta, EXTENSION_NAME, 'method')
