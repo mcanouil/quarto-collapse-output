@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New Features
+
+- feat: Check the document configuration against the extension schema and report what it does not accept.
+
 ## 1.5.2 (2026-08-02)
 
 ### Refactoring
