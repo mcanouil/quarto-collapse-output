@@ -86,6 +86,11 @@ end
 reset_config()
 
 --- Parse a metadata value into a boolean using documented conventions.
+--- Deliberately wider than the schema's own boolean coercion, which accepts
+--- only 'true'/'false': this parser also accepts 'yes'/'no' and '1'/'0', and
+--- stays the source of every boolean value this filter reads, attribute or
+--- option, whatever `checker:attributes`/`checker:options` reports about the
+--- same value.
 --- @param value any Raw metadata value (Pandoc Inlines, boolean, string, nil).
 --- @return boolean|nil True/false when parseable, nil when value is empty.
 local function parse_boolean(value)
@@ -100,20 +105,18 @@ local function parse_boolean(value)
 end
 
 --- Parse a metadata value into a positive integer.
---- Emits a warning and returns nil when the value is not a positive integer.
+--- Returns nil, silently, when the value is not a positive integer: the
+--- schema check (`checker:options`, run from `get_configuration`) already
+--- names the same fault for 'auto-collapse-size', the only caller of this
+--- function, so no extension-side echo is added here.
 --- @param value any Raw metadata value.
---- @param key string Configuration key name (used in the warning).
 --- @return integer|nil Parsed integer, or nil when invalid/empty.
-local function parse_positive_integer(value, key)
+local function parse_positive_integer(value)
   if value == nil then return nil end
   local text = str.stringify(value)
   if str.is_empty(text) then return nil end
   local number = tonumber(text)
   if not number or number < 0 or number ~= math.floor(number) then
-    log.log_warning(
-      EXTENSION_NAME,
-      'Invalid \'' .. key .. '\' value \'' .. text .. '\'. Expected a non-negative integer.'
-    )
     return nil
   end
   return math.floor(number)
@@ -209,7 +212,7 @@ local function get_configuration(meta)
     local default_open = parse_boolean(raw_config['default-open'])
     if default_open ~= nil then config.default_open = default_open end
 
-    local auto_size = parse_positive_integer(raw_config['auto-collapse-size'], 'auto-collapse-size')
+    local auto_size = parse_positive_integer(raw_config['auto-collapse-size'])
     if auto_size ~= nil then config.auto_collapse_size = auto_size end
 
     local output_types = parse_output_types(raw_config['output-types'])
@@ -403,6 +406,16 @@ local function process_div(div)
   if not quarto.doc.is_format('html') then
     return nil
   end
+
+  -- Validate this Div's attributes against the `_any` group before any of
+  -- them are read below (`should_fold_cell`, `should_open`,
+  -- `wrap_with_details`) or written back (`annotate_for_javascript`), so an
+  -- invalid value is named once. `output-fold` declares a schema default, so
+  -- the merged table this returns carries that default for a Div that never
+  -- wrote the attribute; nothing here reads that merged table as a VALUE,
+  -- only `parse_boolean` on the raw attribute does, so a Div's own
+  -- `collapse-all-outputs` fallback is never shadowed by the schema default.
+  checker:attributes(div.attributes, nil)
 
   if not should_fold_cell(div) then
     return nil
