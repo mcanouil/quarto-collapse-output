@@ -24,8 +24,8 @@ options:
     minimum: 0
     description: "Line threshold above which outputs are forced closed regardless of 'default-open'."
   output-types:
-    type: string
-    description: "Comma-separated list of output types to fold. Allowed: stdout, stderr, display, output."
+    type: [string, array]
+    description: "Comma-separated list (or YAML list) of output types to fold. Allowed: stdout, stderr, display, output."
   summary-template:
     type: string
     default: "{type}"

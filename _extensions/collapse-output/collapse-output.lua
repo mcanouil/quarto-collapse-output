@@ -124,6 +124,11 @@ end
 
 --- Parse the `output-types` metadata into a set of enabled keys.
 --- Accepts a comma-separated string or a YAML list of strings.
+--- A YAML list arrives as a Lua table with no `.t` field on this Pandoc
+--- version, so `pandoc.utils.type`, which reports 'List' for one and
+--- 'Inlines' for a scalar string, is what tells the two apart; the field
+--- this function used to test, `.t == 'MetaList'`, is never set here and
+--- would leave every YAML list silently mistaken for one unbroken word.
 --- @param value any Raw metadata value.
 --- @return table<string, boolean>|nil Set of enabled keys, or nil when unset.
 local function parse_output_types(value)
@@ -131,7 +136,7 @@ local function parse_output_types(value)
 
   --- @type table<integer, string>
   local items = {}
-  if type(value) == 'table' and value.t == 'MetaList' then
+  if pandoc.utils.type(value) == 'List' then
     for _, item in ipairs(value) do
       local entry = str.stringify(item)
       if not str.is_empty(entry) then
