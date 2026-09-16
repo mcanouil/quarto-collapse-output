@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+- fix: Validate output-fold, output-open and output-summary against the schema before they are read, so an invalid value is named once. The value itself still comes from this extension's own wider boolean parser. (#54)
+- fix: Stop duplicating the schema's own message for an invalid or out-of-range auto-collapse-size. (#54)
+- fix: Correct the output-types description, which claimed YAML-list support the parser does not provide. (#54)
+- fix: Recognise a YAML list for output-types, so the documented list form filters output the same way the equivalent comma-separated string does. (#54)
+- fix: Gate the options check on the html format so non-acting formats stay silent. (#54)
+
 ### Documentation
 
 - docs: Serve the extension's social card as the Open Graph image, so a shared link shows the card rather than the first image on the page. (#51)
