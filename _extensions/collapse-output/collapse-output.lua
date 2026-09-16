@@ -191,7 +191,9 @@ end
 --- @param meta table The document metadata table.
 --- @return table The metadata table (unchanged).
 local function get_configuration(meta)
-  checker:options(meta)
+  if quarto.doc.is_format('html') then
+    checker:options(meta)
+  end
 
   reset_config()
 
