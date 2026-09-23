@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.6.1 (2026-09-23)
+
 ### Bug Fixes
 
 - fix: Validate output-fold, output-open and output-summary against the schema before they are read, so an invalid value is named once. The value itself still comes from this extension's own wider boolean parser. (#54)
