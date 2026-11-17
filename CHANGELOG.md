@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.6.2 (2026-11-17)
+
 - fix: The HTML dependency folder now uses the extension version, so browsers load the new files after an upgrade. (#57)
 - build: Require Quarto 1.11.9 or later.
 

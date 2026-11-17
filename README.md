@@ -7,7 +7,7 @@ Quarto folds source code with `code-fold`; this folds what the code produced.
 ## Installation
 
 ```bash
-quarto add mcanouil/quarto-collapse-output@1.6.1
+quarto add mcanouil/quarto-collapse-output@1.6.2
 ```
 
 This will install the extension under the `_extensions` subdirectory.
